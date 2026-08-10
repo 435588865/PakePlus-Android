@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#007aff">
+<link rel="manifest" href="./manifest.json">
+<title>极简备考工作台</title>
+<style>
+:root {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --text: #1d1d1f;
+  --text2: #515154;
+  --text3: #86868b;
+  --accent: #007aff;
+  --accent2: #5e5ce6;
+  --red: #ff3b30;
+  --green: #34c759;
+  --orange: #ff9500;
+  --yellow: #ffcc00;
+  --border: #e5e5ea;
+  --radius: 14px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --card: #1c1c1e;
+  --text: #f5f5f7;
+  --text2: #a1a1a6;
+  --text3: #636366;
+  --border: #38383a;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:16px; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 90px;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #007aff, #5e5ce6);
+  color: #fff;
+  padding: 20px 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.header-top h1 { font-size:18px; font-weight:600; }
+.theme-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+}
+.theme-btn:active { transform: scale(0.9); }
+
+.countdown-box {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.countdown-label {
+  font-size: 13px;
+  opacity: 0.85;
+  letter-spacing: 1px;
+}
+.countdown-days {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.countdown-unit { font-size: 16px; font-weight: 400; opacity: 0.8; }
+.countdown-sub {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* ===== Navigation ===== */
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 4px 16px 0;
+  position: sticky;
+  top: 142px;
+  z-index: 99;
+  background: var(--bg);
+  transition: background 0.3s;
+}
+.nav-btn {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ===== Page Container ===== */
+.page { display: none; padding: 12px 16px; }
+.page.active { display: block; }
+
+/* ===== Cards ===== */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 4px 0;
+}
+.card-title .icon { font-size: 20px; }
+.card-title .arrow {
+  margin-left: auto;
+  font-size: 12px;
+  transition: transform 0.25s;
+  color: var(--text3);
+}
+.card.collapsed .card-title { margin-bottom: 0; }
+.card.collapsed .card-title .arrow { transform: rotate(-90deg); }
+.card-body {
+  margin-top: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.card.collapsed .card-body {
+  margin-top: 0;
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0;
+}
+/* Quick nav indicator on collapsed cards */
+.card.collapsed .card-quick-stat {
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: auto;
+  margin-right: 20px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary2 { background: var(--accent2); color: #fff; }
+.btn-outline { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+.btn-block { display: flex; width: 100%; }
+
+/* ===== Inputs ===== */
+.input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.input-row:last-child { margin-bottom: 0; }
+input, select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text);
+  transition: border-color 0.2s, background 0.3s, color 0.3s;
+  outline: none;
+}
+input:focus { border-color: var(--accent); }
+input[type="date"], input[type="time"] { min-width: 0; }
+
+/* ===== Timer Display ===== */
+.timer-display {
+  font-size: 42px;
+  font-weight: 700;
+  text-align: center;
+  padding: 12px 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.timer-display.running { color: var(--red); }
+.timer-label {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 10px;
+}
+.timer-btns {
+  display: flex;
+  gap: 8px;
+}
+.timer-btns .btn { flex: 1; }
+
+/* ===== Stats ===== */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.stat-row + .stat-row { border-top: 1px solid var(--border); }
+.stat-val { font-weight: 600; color: var(--accent); }
+.stat-val.bad { color: var(--red); }
+.stat-val.good { color: var(--green); }
+
+/* ===== Sleep Card ===== */
+.sleep-result {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+}
+.sleep-result.pass { background: #e8f8e8; color: #1a7a1a; }
+.sleep-result.fail { background: #fde8e8; color: #b91c1c; }
+[data-theme="dark"] .sleep-result.pass { background: #0d3320; color: #4ade80; }
+[data-theme="dark"] .sleep-result.fail { background: #3b1717; color: #f87171; }
+
+/* ===== Cigarette Counter ===== */
+.smoke-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+}
+.smoke-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: none;
+  font-size: 32px;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.smoke-btn:active { transform: scale(0.88); background: var(--red); }
+.smoke-count {
+  font-size: 36px;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1d1d1f;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ===== History Table ===== */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: -8px -12px;
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 700px;
+}
+.history-table th {
+  background: var(--border);
+  padding: 8px 6px;
+  text-align: center;
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+.history-table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.history-table .pass { color: var(--green); font-weight: 600; }
+.history-table .fail { color: var(--red); font-weight: 600; }
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.date-nav .date-label {
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 140px;
+  text-align: center;
+}
+.date-nav button {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ===== Summary ===== */
+.summary-box {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+/* ===== Bottom Nav ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  color: var(--text3);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.bottom-nav-item .nav-icon { font-size: 22px; }
+.bottom-nav-item.active { color: var(--accent); }
+
+/* ===== Settings ===== */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+.setting-item + .setting-item { border-top: 1px solid var(--border); }
+.setting-item label { font-size: 14px; }
+.setting-item input[type="date"] { width: 140px; flex: none; }
+
+/* ===== Detail List ===== */
+.detail-list { margin-top: 4px; }
+.detail-item {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 3px 8px;
+  background: var(--bg);
+  border-radius: 6px;
+  margin: 2px 0;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* ===== Game Timer ===== */
+.game-status {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 8px;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.game-status.running { color: var(--red); background: #fde8e8; }
+[data-theme="dark"] .game-status.running { background: #3b1717; }
+
+/* Session list */
+.session-list {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 8px;
+}
+.session-item {
+  padding: 4px 8px;
+  background: var(--bg);
+  border-radius: 6px;
+  margin: 2px 0;
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .countdown-days { font-size: 44px; }
+  .timer-display { font-size: 34px; }
+  .smoke-btn { width: 56px; height: 56px; font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-top">
+    <h1>📋 极简备考工作台</h1>
+    <button class="theme-btn" onclick="toggleTheme()" title="切换主题">🌓</button>
+  </div>
+  <div class="countdown-box" onclick="document.querySelector('.bottom-nav-item:nth-child(3)').click()">
+    <div class="countdown-label">距离省考笔试还有</div>
+    <div class="countdown-days" id="countdownDays">--</div>
+    <div class="countdown-unit">天</div>
+    <div class="countdown-sub" id="countdownSub"></div>
+  </div>
+</header>
+
+<!-- Pages -->
+<section class="page active" id="page-home">
+  <!-- Module 1: Study Timer -->
+  <div class="card" id="card-study">
+    <div class="card-title" onclick="toggleCard('study')"><span class="icon">📚</span>学习计时<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="timer-display" id="studyDisplay">00:00</div>
+    <div class="timer-label" id="studyLabel">选择一个时长开始专注</div>
+    <div class="timer-btns">
+      <button class="btn btn-primary" id="btnStudy25" onclick="startStudy(25)">🎵 25 分钟</button>
+      <button class="btn btn-primary2" id="btnStudy45" onclick="startStudy(45)">🎶 45 分钟</button>
+    </div>
+    <button class="btn btn-danger btn-sm" id="btnStudyStop" onclick="stopStudy()" style="display:none;margin-top:8px;width:100%;">停止计时</button>
+    <div class="session-list" id="studySessions"></div>
+    <div class="stat-row" style="margin-top:8px;">
+      <span>今日累计学习</span>
+      <span class="stat-val" id="todayStudy">0 分钟</span>
+    </div>
+    </div>
+  </div>
+
+  <!-- Module 2: Exercise -->
+  <div class="card" id="card-exercise">
+    <div class="card-title" onclick="toggleCard('exercise')"><span class="icon">🏃</span>运动打卡<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="input-row">
+      <input type="text" id="exType" placeholder="运动类型（慢跑、快走…）">
+    </div>
+    <div class="input-row">
+      <input type="number" id="exDuration" placeholder="时长（分钟）" min="1">
+      <button class="btn btn-primary btn-sm" onclick="addExercise()">确认提交</button>
+    </div>
+    <div class="detail-list" id="exList"></div>
+    <div class="stat-row" style="margin-top:8px;">
+      <span>今日运动总时长</span>
+      <span class="stat-val" id="todayEx">0 分钟</span>
+    </div>
+    </div>
+  </div>
+
+  <!-- Module 3: Smoking -->
+  <div class="card" id="card-smoke">
+    <div class="card-title" onclick="toggleCard('smoke')"><span class="icon">🚬</span>抽烟计数<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="smoke-area">
+      <button class="smoke-btn" onclick="addSmoke()">🚬</button>
+      <div>
+        <div style="font-size:13px;color:var(--text2);">今日已抽</div>
+        <div class="smoke-count" id="smokeCount">0</div>
+        <div style="font-size:13px;color:var(--text2);">根</div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- Module 4: Game Timer -->
+  <div class="card" id="card-game">
+    <div class="card-title" onclick="toggleCard('game')"><span class="icon">🎮</span>游戏计时<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="game-status" id="gameStatus">未开始</div>
+    <div class="timer-display" id="gameDisplay" style="font-size:28px;padding:6px 0;">00:00</div>
+    <div class="timer-btns">
+      <button class="btn btn-primary" onclick="startGame()" id="btnGameStart">▶ 开始游戏</button>
+      <button class="btn btn-danger" onclick="stopGame()" id="btnGameStop" disabled>⏹ 结束游戏</button>
+    </div>
+    <div class="session-list" id="gameSessions"></div>
+    <div class="stat-row" style="margin-top:8px;">
+      <span>今日游戏总时长</span>
+      <span class="stat-val bad" id="todayGame">0 分钟</span>
+    </div>
+    </div>
+  </div>
+
+  <!-- Module 5: Expense -->
+  <div class="card" id="card-expense">
+    <div class="card-title" onclick="toggleCard('expense')"><span class="icon">💰</span>日常支出<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="input-row">
+      <input type="text" id="expType" placeholder="类型（餐饮、零食…）">
+    </div>
+    <div class="input-row">
+      <input type="number" id="expAmount" placeholder="金额（元）" min="0" step="0.01">
+      <button class="btn btn-primary btn-sm" onclick="addExpense()">完成</button>
+    </div>
+    <div class="detail-list" id="expList"></div>
+    <div class="stat-row" style="margin-top:8px;">
+      <span>今日总花销</span>
+      <span class="stat-val bad" id="todayExp">0.00 元</span>
+    </div>
+    </div>
+  </div>
+
+  <!-- Module 6: Sleep -->
+  <div class="card" id="card-sleep">
+    <div class="card-title" onclick="toggleCard('sleep')"><span class="icon">😴</span>睡眠录入<span class="arrow">▼</span></div>
+    <div class="card-body">
+    <div class="input-row">
+      <label style="font-size:14px;min-width:60px;">入睡</label>
+      <input type="time" id="sleepBed">
+    </div>
+    <div class="input-row">
+      <label style="font-size:14px;min-width:60px;">起床</label>
+      <input type="time" id="sleepWake">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="submitSleep()" style="margin-top:4px;">提交睡眠记录</button>
+    <div class="sleep-result" id="sleepResult" style="display:none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- History Page -->
+<section class="page" id="page-history">
+  <div class="date-nav">
+    <button onclick="changeHistoryDate(-1)">◀</button>
+    <span class="date-label" id="historyDateLabel"></span>
+    <button onclick="changeHistoryDate(1)">▶</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>每日统计</div>
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>日期</th><th>睡眠时段</th><th>时长</th><th>达标</th>
+            <th>学习</th><th>游戏</th><th>运动总时</th><th>运动明细</th>
+            <th>抽烟</th><th>总花销</th><th>消费明细</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📝</span>每日总结</div>
+    <div class="summary-box" id="summaryBox">请先选择日期</div>
+    <button class="btn btn-outline btn-block" onclick="copySummary()" style="margin-top:8px;">📋 一键复制总结</button>
+  </div>
+</section>
+
+<!-- Settings Page -->
+<section class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span>设置</div>
+    <div class="setting-item">
+      <label>省考笔试日期</label>
+      <input type="date" id="examDateInput" onchange="saveExamDate()">
+    </div>
+    <div class="setting-item">
+      <label>数据导出备份</label>
+      <button class="btn btn-outline btn-sm" onclick="exportData()">导出 JSON 文件</button>
+    </div>
+    <div class="setting-item">
+      <label>数据导入恢复</label>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">导入 JSON 文件</button>
+      <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+    </div>
+    <div class="setting-item">
+      <label>睡眠达标标准</label>
+      <span style="font-size:13px;color:var(--text2);">23:00前入睡 / ≥7小时</span>
+    </div>
+    <div class="setting-item">
+      <label>清除所有数据</label>
+      <button class="btn btn-danger btn-sm" onclick="clearAllData()">重置</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">🔔</span>学习计时铃声</div>
+    <div class="setting-item">
+      <label>25分钟铃声</label>
+      <div>
+        <span id="ringtone25Name" style="font-size:12px;color:var(--text2);margin-right:8px;">默认合成音</span>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('ringtone25Input').click()">上传</button>
+        <input type="file" id="ringtone25Input" accept="audio/*" style="display:none;" onchange="handleRingtoneUpload(event, 'ringtone25', 'ringtone25Name')">
+      </div>
+    </div>
+    <div class="setting-item">
+      <label>45分钟铃声</label>
+      <div>
+        <span id="ringtone45Name" style="font-size:12px;color:var(--text2);margin-right:8px;">默认合成音</span>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('ringtone45Input').click()">上传</button>
+        <input type="file" id="ringtone45Input" accept="audio/*" style="display:none;" onchange="handleRingtoneUpload(event, 'ringtone45', 'ringtone45Name')">
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;">
+      支持 mp3 / wav / ogg 等格式，上传后替换默认提示音。点击下方按钮试听：
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn btn-outline btn-sm" onclick="testRingtone('ringtone25')">🎵 试听25min</button>
+      <button class="btn btn-outline btn-sm" onclick="testRingtone('ringtone45')">🎵 试听45min</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">💡</span>小提示</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+      • 所有数据仅存储在手机浏览器本地<br>
+      • 建议定期导出备份以防丢失<br>
+      • 每天0点自动结算，数据归档到对应日期<br>
+      • 学习计时器到点会有铃声提醒（需手机音量开启）
+    </div>
+  </div>
+</section>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" onclick="switchTab('home')">
+    <span class="nav-icon">🏠</span>首页
+  </button>
+  <button class="bottom-nav-item" onclick="switchTab('history')">
+    <span class="nav-icon">📊</span>统计
+  </button>
+  <button class="bottom-nav-item" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙️</span>设置
+  </button>
+</nav>
+
+<script>
+/* ==================== AUDIO ENGINE ==================== */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+let audioDB = null;
+
+// IndexedDB for storing audio files
+function openAudioDB() {
+  return new Promise((resolve, reject) => {
+    if (audioDB) return resolve(audioDB);
+    const req = indexedDB.open('WorkbenchRingtones', 1);
+    req.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('ringtones')) {
+        db.createObjectStore('ringtones', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = function(e) { audioDB = e.target.result; resolve(audioDB); };
+    req.onerror = function(e) { reject(e); };
+  });
+}
+
+function saveRingtone(id, file) {
+  return openAudioDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('ringtones', 'readwrite');
+      const store = tx.objectStore('ringtones');
+      store.put({ id, name: file.name, type: file.type, data: file, size: file.size });
+      tx.oncomplete = resolve;
+      tx.onerror = reject;
+    });
+  });
+}
+
+function getRingtone(id) {
+  return openAudioDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('ringtones', 'readonly');
+      const store = tx.objectStore('ringtones');
+      const req = store.get(id);
+      req.onsuccess = function() {
+        if (req.result && req.result.data) {
+          resolve(URL.createObjectURL(req.result.data));
+        } else {
+          resolve(null);
+        }
+      };
+      req.onerror = reject;
+    });
+  });
+}
+
+function deleteRingtone(id) {
+  return openAudioDB().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('ringtones', 'readwrite');
+      const store = tx.objectStore('ringtones');
+      const req = store.delete(id);
+      tx.oncomplete = resolve;
+      tx.onerror = reject;
+    });
+  });
+}
+
+// Default synthetic tones (fallback)
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, type, duration, vol=0.3) {
+  try {
+    ensureAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = vol;
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function ring25() {
+  playTone(880, 'sine', 0.3, 0.4);
+  setTimeout(() => playTone(1100, 'sine', 0.3, 0.4), 350);
+  setTimeout(() => playTone(1320, 'sine', 0.3, 0.6), 700);
+}
+
+function ring45() {
+  playTone(523, 'triangle', 0.4, 0.4);
+  setTimeout(() => playTone(659, 'triangle', 0.4, 0.4), 400);
+  setTimeout(() => playTone(784, 'triangle', 0.4, 0.7), 800);
+}
+
+async function ringTimerEnd(type) {
+  const ringId = type === 25 ? 'ringtone25' : 'ringtone45';
+  let audioUrl = null;
+  try { audioUrl = await getRingtone(ringId); } catch(e) {}
+
+  if (audioUrl) {
+    // Play custom uploaded audio 3 times
+    try {
+      ensureAudio();
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.8;
+      await audio.play();
+      setTimeout(async () => { const a2 = new Audio(audioUrl); a2.volume = 0.8; await a2.play(); }, 1200);
+      setTimeout(async () => { const a3 = new Audio(audioUrl); a3.volume = 0.8; await a3.play(); }, 3000);
+    } catch(e) { /* fallback to synth */ }
+  } else {
+    // Fallback to synthetic tone
+    const fn = type === 25 ? ring25 : ring45;
+    fn();
+    setTimeout(fn, 1200);
+    setTimeout(fn, 2400);
+  }
+}
+
+/* ==================== DATA ==================== */
+function getStore() {
+  try { return JSON.parse(localStorage.getItem('exam_workbench') || '{}'); }
+  catch(e) { return {}; }
+}
+function setStore(data) {
+  localStorage.setItem('exam_workbench', JSON.stringify(data));
+}
+
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getTodayData() {
+  const store = getStore();
+  const td = today();
+  if (!store.dailyData) store.dailyData = {};
+  if (!store.dailyData[td]) {
+    store.dailyData[td] = {
+      date: td,
+      sleep: null,
+      studyMinutes: 0,
+      studySessions: [],
+      gameMinutes: 0,
+      gameSessions: [],
+      exercises: [],
+      smokeCount: 0,
+      expenses: []
+    };
+    setStore(store);
+  }
+  return store.dailyData[td];
+}
+
+function saveTodayData(tdData) {
+  const store = getStore();
+  if (!store.dailyData) store.dailyData = {};
+  store.dailyData[today()] = tdData;
+  setStore(store);
+}
+
+/* ==================== HELPERS ==================== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function formatMin(totalMin) {
+  if (totalMin < 60) return totalMin + ' 分钟';
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m > 0 ? h + 'h ' + m + 'min' : h + ' 小时';
+}
+
+/* ==================== THEME ==================== */
+function toggleTheme() {
+  const html = document.documentElement;
+  const cur = html.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('exam_theme', next);
+}
+(function() {
+  const saved = localStorage.getItem('exam_theme') || 'light';
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+})();
+
+/* ==================== COUNTDOWN ==================== */
+function updateCountdown() {
+  const store = getStore();
+  const examDate = store.examDate;
+  const el = document.getElementById('countdownDays');
+  const sub = document.getElementById('countdownSub');
+  if (!examDate) { el.textContent = '--'; sub.textContent = '请在设置中录入考试日期'; return; }
+  const now = new Date();
+  const target = new Date(examDate + 'T00:00:00');
+  const diff = target - now;
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  if (days < 0) { el.textContent = '0'; sub.textContent = '考试已结束，辛苦了！'; }
+  else if (days === 0) { el.textContent = '0'; sub.textContent = '就是今天，加油！'; }
+  else { el.textContent = days; sub.textContent = target.getFullYear() + '年' + (target.getMonth()+1) + '月' + target.getDate() + '日'; }
+}
+
+/* ==================== STUDY TIMER ==================== */
+let studyTimer = null;
+let studyRemaining = 0;
+let studyTargetType = null;
+let studyPaused = false;
+
+function updateStudyDisplay() {
+  const m = Math.floor(studyRemaining / 60);
+  const s = studyRemaining % 60;
+  document.getElementById('studyDisplay').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function startStudy(minutes) {
+  if (studyTimer) return;
+  studyTargetType = minutes;
+  studyRemaining = minutes * 60;
+  studyPaused = false;
+
+  const display = document.getElementById('studyDisplay');
+  display.classList.add('running');
+  document.getElementById('studyLabel').textContent = minutes + ' 分钟专注学习中…';
+  document.getElementById('btnStudy25').disabled = true;
+  document.getElementById('btnStudy45').disabled = true;
+  document.getElementById('btnStudyStop').style.display = 'flex';
+
+  updateStudyDisplay();
+  studyTimer = setInterval(() => {
+    studyRemaining--;
+    updateStudyDisplay();
+    if (studyRemaining <= 0) {
+      clearInterval(studyTimer);
+      studyTimer = null;
+      ringTimerEnd(studyTargetType);
+      showToast('🔔 ' + studyTargetType + ' 分钟学习完成！');
+      finishStudy();
+    }
+  }, 1000);
+}
+
+function stopStudy() {
+  if (!studyTimer) return;
+  clearInterval(studyTimer);
+  studyTimer = null;
+  const elapsedSec = studyTargetType * 60 - studyRemaining;
+  const elapsedMin = Math.round(elapsedSec / 60);
+  showToast('学习计时已停止（本次 ' + elapsedMin + ' 分钟）');
+  finishStudy();
+}
+
+function finishStudy() {
+  const elapsedSec = studyTargetType * 60 - studyRemaining;
+  const elapsedMin = Math.round(elapsedSec / 60);
+  if (elapsedMin <= 0) { resetStudyUI(); return; }
+
+  const td = getTodayData();
+  td.studyMinutes += elapsedMin;
+  td.studySessions.push({ type: studyTargetType, minutes: elapsedMin, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+  saveTodayData(td);
+
+  resetStudyUI();
+  renderStudySessions();
+  refreshAll();
+}
+
+function resetStudyUI() {
+  studyRemaining = 0;
+  studyTargetType = null;
+  const display = document.getElementById('studyDisplay');
+  display.classList.remove('running');
+  display.textContent = '00:00';
+  document.getElementById('studyLabel').textContent = '选择一个时长开始专注';
+  document.getElementById('btnStudy25').disabled = false;
+  document.getElementById('btnStudy45').disabled = false;
+  document.getElementById('btnStudyStop').style.display = 'none';
+}
+
+function renderStudySessions() {
+  const td = getTodayData();
+  const container = document.getElementById('studySessions');
+  if (!td.studySessions || td.studySessions.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = td.studySessions.map(s =>
+    '<span class="detail-item">' + s.time + ' ' + s.type + 'min</span>'
+  ).join('');
+}
+
+/* ==================== EXERCISE ==================== */
+function addExercise() {
+  const typeEl = document.getElementById('exType');
+  const durEl = document.getElementById('exDuration');
+  const type = typeEl.value.trim();
+  const dur = parseInt(durEl.value);
+  if (!type) { showToast('请输入运动类型'); return; }
+  if (!dur || dur <= 0) { showToast('请输入有效运动时长'); return; }
+
+  const td = getTodayData();
+  td.exercises.push({ type, duration: dur, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+  saveTodayData(td);
+
+  typeEl.value = '';
+  durEl.value = '';
+  renderExercises();
+  refreshAll();
+  showToast('✅ 已记录：' + type + ' ' + dur + '分钟');
+}
+
+function renderExercises() {
+  const td = getTodayData();
+  const container = document.getElementById('exList');
+  if (!td.exercises || td.exercises.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = td.exercises.map(e =>
+    '<span class="detail-item">🏃 ' + e.type + ' ' + e.duration + 'min</span>'
+  ).join('');
+}
+
+/* ==================== SMOKING ==================== */
+function addSmoke() {
+  const td = getTodayData();
+  td.smokeCount++;
+  saveTodayData(td);
+  document.getElementById('smokeCount').textContent = td.smokeCount;
+  showToast('✅ 已计入今日抽烟统计');
+}
+
+/* ==================== GAME TIMER ==================== */
+let gameTimer = null;
+let gameElapsed = 0;
+let gameRunning = false;
+
+function updateGameDisplay() {
+  const m = Math.floor(gameElapsed / 60);
+  const s = gameElapsed % 60;
+  document.getElementById('gameDisplay').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function startGame() {
+  if (gameRunning) return;
+  gameRunning = true;
+  gameElapsed = 0;
+  document.getElementById('gameStatus').textContent = '游戏中…';
+  document.getElementById('gameStatus').classList.add('running');
+  document.getElementById('btnGameStart').disabled = true;
+  document.getElementById('btnGameStop').disabled = false;
+  updateGameDisplay();
+  gameTimer = setInterval(() => {
+    gameElapsed++;
+    updateGameDisplay();
+  }, 1000);
+}
+
+function stopGame() {
+  if (!gameRunning) return;
+  clearInterval(gameTimer);
+  gameTimer = null;
+  gameRunning = false;
+  const min = Math.round(gameElapsed / 60);
+
+  const td = getTodayData();
+  td.gameMinutes += min;
+  td.gameSessions.push({ minutes: min, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+  saveTodayData(td);
+
+  document.getElementById('gameStatus').textContent = '未开始';
+  document.getElementById('gameStatus').classList.remove('running');
+  document.getElementById('btnGameStart').disabled = false;
+  document.getElementById('btnGameStop').disabled = true;
+  gameElapsed = 0;
+  updateGameDisplay();
+  renderGameSessions();
+  refreshAll();
+  showToast('本次游玩 ' + min + ' 分钟');
+}
+
+function renderGameSessions() {
+  const td = getTodayData();
+  const container = document.getElementById('gameSessions');
+  if (!td.gameSessions || td.gameSessions.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = td.gameSessions.map(s =>
+    '<span class="detail-item">🎮 ' + s.time + ' ' + s.minutes + 'min</span>'
+  ).join('');
+}
+
+/* ==================== EXPENSE ==================== */
+function addExpense() {
+  const typeEl = document.getElementById('expType');
+  const amtEl = document.getElementById('expAmount');
+  const type = typeEl.value.trim();
+  const amount = parseFloat(amtEl.value);
+  if (!type) { showToast('请输入支出类型'); return; }
+  if (isNaN(amount) || amount <= 0) { showToast('请输入有效金额'); return; }
+
+  const td = getTodayData();
+  td.expenses.push({ type, amount, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+  saveTodayData(td);
+
+  typeEl.value = '';
+  amtEl.value = '';
+  renderExpenses();
+  refreshAll();
+  showToast('✅ 已记录：' + type + ' ¥' + amount.toFixed(2));
+}
+
+function renderExpenses() {
+  const td = getTodayData();
+  const container = document.getElementById('expList');
+  if (!td.expenses || td.expenses.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = td.expenses.map(e =>
+    '<span class="detail-item">' + e.type + ' ¥' + e.amount.toFixed(2) + '</span>'
+  ).join('');
+}
+
+/* ==================== SLEEP ==================== */
+function submitSleep() {
+  const bedVal = document.getElementById('sleepBed').value;
+  const wakeVal = document.getElementById('sleepWake').value;
+  if (!bedVal || !wakeVal) { showToast('请填写入睡和起床时间'); return; }
+
+  const [bh, bm] = bedVal.split(':').map(Number);
+  const [wh, wm] = wakeVal.split(':').map(Number);
+  let bedMin = bh * 60 + bm;
+  let wakeMin = wh * 60 + wm;
+  if (wakeMin <= bedMin) wakeMin += 24 * 60;
+  const totalMin = wakeMin - bedMin;
+  const hours = (totalMin / 60).toFixed(1);
+  const qualified = bh < 23 && parseFloat(hours) >= 7;
+
+  const td = getTodayData();
+  td.sleep = { bedTime: bedVal, wakeTime: wakeVal, duration: parseFloat(hours), qualified };
+  saveTodayData(td);
+
+  const resultEl = document.getElementById('sleepResult');
+  resultEl.style.display = 'block';
+  if (qualified) {
+    resultEl.className = 'sleep-result pass';
+    resultEl.textContent = '✅ 睡眠达标 — ' + hours + '小时';
+  } else {
+    resultEl.className = 'sleep-result fail';
+    resultEl.textContent = '❌ 睡眠未达标 — ' + hours + '小时（标准：23:00前入睡，≥7小时）';
+  }
+  refreshAll();
+  showToast('睡眠记录已保存');
+}
+
+function renderSleepResult() {
+  const td = getTodayData();
+  const resultEl = document.getElementById('sleepResult');
+  if (!td.sleep) { resultEl.style.display = 'none'; return; }
+  resultEl.style.display = 'block';
+  if (td.sleep.qualified) {
+    resultEl.className = 'sleep-result pass';
+    resultEl.textContent = '✅ 睡眠达标 — ' + td.sleep.duration + '小时';
+  } else {
+    resultEl.className = 'sleep-result fail';
+    resultEl.textContent = '❌ 睡眠未达标 — ' + td.sleep.duration + '小时（标准：23:00前入睡，≥7小时）';
+  }
+}
+
+/* ==================== REFRESH ==================== */
+function refreshAll() {
+  const td = getTodayData();
+  document.getElementById('todayStudy').textContent = formatMin(td.studyMinutes);
+  document.getElementById('todayEx').textContent = formatMin(td.exercises.reduce((s,e) => s + e.duration, 0));
+  document.getElementById('smokeCount').textContent = td.smokeCount;
+  document.getElementById('todayGame').textContent = formatMin(td.gameMinutes);
+  document.getElementById('todayExp').textContent = td.expenses.reduce((s,e) => s + e.amount, 0).toFixed(2) + ' 元';
+  updateCountdown();
+}
+
+function refreshPage() {
+  refreshAll();
+  renderStudySessions();
+  renderExercises();
+  renderGameSessions();
+  renderExpenses();
+  renderSleepResult();
+  const td = getTodayData();
+  if (td.sleep) {
+    document.getElementById('sleepBed').value = td.sleep.bedTime;
+    document.getElementById('sleepWake').value = td.sleep.wakeTime;
+  }
+}
+
+/* ==================== HISTORY ==================== */
+let historyDate = today();
+
+function changeHistoryDate(delta) {
+  const parts = historyDate.split('-').map(Number);
+  const d = new Date(parts[0], parts[1]-1, parts[2]);
+  d.setDate(d.getDate() + delta);
+  historyDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  renderHistory();
+}
+
+function renderHistory() {
+  document.getElementById('historyDateLabel').textContent = historyDate;
+  const store = getStore();
+  const data = (store.dailyData && store.dailyData[historyDate]) ? store.dailyData[historyDate] : null;
+
+  if (!data) {
+    document.getElementById('historyTableBody').innerHTML =
+      '<tr><td colspan="11" style="padding:20px;color:var(--text3);">暂无 ' + historyDate + ' 的数据</td></tr>';
+    document.getElementById('summaryBox').textContent = historyDate + ' 暂无记录';
+    return;
+  }
+
+  // Table
+  const sleep = data.sleep;
+  const sleepSpan = sleep ? sleep.bedTime + '-' + sleep.wakeTime : '—';
+  const sleepDur = sleep ? sleep.duration + 'h' : '—';
+  const sleepQual = sleep ? (sleep.qualified ? '<span class="pass">达标</span>' : '<span class="fail">未达标</span>') : '—';
+  const exTotal = data.exercises.reduce((s,e) => s + e.duration, 0);
+  const exDetail = data.exercises.map(e => e.type + '(' + e.duration + 'min)').join(' / ') || '—';
+  const expTotal = data.expenses.reduce((s,e) => s + e.amount, 0).toFixed(2);
+  const expDetail = data.expenses.map(e => e.type + '¥' + e.amount.toFixed(2)).join(' / ') || '—';
+
+  document.getElementById('historyTableBody').innerHTML =
+    '<tr>' +
+    '<td>' + historyDate + '</td>' +
+    '<td>' + sleepSpan + '</td>' +
+    '<td>' + sleepDur + '</td>' +
+    '<td>' + sleepQual + '</td>' +
+    '<td>' + formatMin(data.studyMinutes) + '</td>' +
+    '<td>' + formatMin(data.gameMinutes) + '</td>' +
+    '<td>' + formatMin(exTotal) + '</td>' +
+    '<td>' + exDetail + '</td>' +
+    '<td>' + data.smokeCount + '根</td>' +
+    '<td>¥' + expTotal + '</td>' +
+    '<td>' + expDetail + '</td>' +
+    '</tr>';
+
+  // Summary
+  const parts = historyDate.split('-');
+  const dateStr = parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+  let summary = dateStr + '\n';
+  summary += '睡眠：' + sleepDur + '  入睡时段：' + sleepSpan + ' ';
+  summary += sleep ? (sleep.qualified ? '【达标】' : '【未达标】') : '';
+  summary += '\n累计学习：' + formatMin(data.studyMinutes);
+  summary += '\n游戏时长：' + formatMin(data.gameMinutes);
+  summary += '\n运动合计：' + formatMin(exTotal);
+  if (data.exercises.length > 0) summary += '，运动项目：' + data.exercises.map(e => e.type).join('、');
+  summary += '\n抽烟：' + data.smokeCount + '根';
+  summary += '\n当日花销：¥' + expTotal;
+
+  document.getElementById('summaryBox').textContent = summary;
+}
+
+function copySummary() {
+  const text = document.getElementById('summaryBox').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ 总结已复制到剪贴板'));
+  } else {
+    showToast('请长按文本手动复制');
+  }
+}
+
+/* ==================== SETTINGS ==================== */
+function saveExamDate() {
+  const val = document.getElementById('examDateInput').value;
+  const store = getStore();
+  store.examDate = val || null;
+  setStore(store);
+  updateCountdown();
+  showToast('考试日期已更新');
+}
+
+function loadExamDate() {
+  const store = getStore();
+  document.getElementById('examDateInput').value = store.examDate || '';
+  updateCountdown();
+}
+
+function exportData() {
+  const store = getStore();
+  const blob = new Blob([JSON.stringify(store, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '工作台备份_' + today() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 数据已导出');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.dailyData) throw new Error('无效数据');
+      localStorage.setItem('exam_workbench', JSON.stringify(data));
+      showToast('✅ 数据已恢复！刷新查看');
+      loadExamDate();
+      refreshPage();
+    } catch(err) {
+      showToast('❌ 数据格式错误');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ 确认清除所有数据？此操作不可恢复！\n\n建议先导出备份。')) return;
+  if (!confirm('再次确认：清除所有打卡、计时、记账数据？')) return;
+  localStorage.removeItem('exam_workbench');
+  // Also clear ringtones
+  openAudioDB().then(db => {
+    const tx = db.transaction('ringtones', 'readwrite');
+    tx.objectStore('ringtones').clear();
+  }).catch(() => {});
+  showToast('已清除所有数据');
+  location.reload();
+}
+
+/* ==================== RINGTONE MANAGEMENT ==================== */
+async function handleRingtoneUpload(event, ringId, labelId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('⚠️ 文件不能超过 20MB');
+    return;
+  }
+  try {
+    await saveRingtone(ringId, file);
+    document.getElementById(labelId).textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + 'KB)';
+    showToast('✅ ' + (ringId === 'ringtone25' ? '25分钟' : '45分钟') + ' 铃声已保存');
+  } catch(e) {
+    showToast('❌ 保存失败，请重试');
+  }
+  event.target.value = '';
+}
+
+async function testRingtone(ringId) {
+  let audioUrl = null;
+  try { audioUrl = await getRingtone(ringId); } catch(e) {}
+  if (audioUrl) {
+    try {
+      ensureAudio();
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.8;
+      await audio.play();
+      showToast('🎵 试听中…');
+    } catch(e) {
+      showToast('❌ 播放失败');
+    }
+  } else {
+    // Play default synth as preview
+    if (ringId === 'ringtone25') ring25();
+    else ring45();
+    showToast('🎵 当前为默认合成音');
+  }
+}
+
+function loadRingtoneNames() {
+  ['ringtone25', 'ringtone45'].forEach(id => {
+    const labelId = id + 'Name';
+    getRingtone(id).then(url => {
+      if (url) {
+        // We can't get the name from the URL easily, but we can check DB
+        openAudioDB().then(db => {
+          const tx = db.transaction('ringtones', 'readonly');
+          const req = tx.objectStore('ringtones').get(id);
+          req.onsuccess = function() {
+            if (req.result) {
+              document.getElementById(labelId).textContent =
+                req.result.name + ' (' + (req.result.size / 1024).toFixed(0) + 'KB)';
+            }
+          };
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+  });
+}
+
+/* ==================== TABS ==================== */
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+
+  const items = document.querySelectorAll('.bottom-nav-item');
+  if (tab === 'home') items[0].classList.add('active');
+  else if (tab === 'history') { items[1].classList.add('active'); historyDate = today(); renderHistory(); }
+  else if (tab === 'settings') items[2].classList.add('active');
+}
+
+/* ==================== CARD COLLAPSE ==================== */
+function getCollapsedState() {
+  try { return JSON.parse(localStorage.getItem('exam_collapsed') || '{}'); }
+  catch(e) { return {}; }
+}
+function setCollapsedState(state) {
+  localStorage.setItem('exam_collapsed', JSON.stringify(state));
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  const collapsed = card.classList.toggle('collapsed');
+  const state = getCollapsedState();
+  state[id] = collapsed;
+  setCollapsedState(state);
+}
+
+function initCards() {
+  const state = getCollapsedState();
+  // Default: only study and sleep expanded on first visit
+  const defaults = { study: false, exercise: true, smoke: true, game: true, expense: true, sleep: false };
+  const cards = ['study', 'exercise', 'smoke', 'game', 'expense', 'sleep'];
+  cards.forEach(id => {
+    const isCollapsed = state[id] !== undefined ? state[id] : defaults[id];
+    const card = document.getElementById('card-' + id);
+    if (isCollapsed) card.classList.add('collapsed');
+    else card.classList.remove('collapsed');
+  });
+  setCollapsedState(Object.assign({}, defaults, state));
+}
+
+/* ==================== PWA ==================== */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(function() {});
+}
+
+/* ==================== INIT ==================== */
+initCards();
+refreshPage();
+loadExamDate();
+loadRingtoneNames();
+
+// Midnight check - refresh if date changes
+setInterval(() => {
+  const storedDate = localStorage.getItem('exam_last_date');
+  const td = today();
+  if (storedDate !== td) {
+    localStorage.setItem('exam_last_date', td);
+    refreshPage();
+  }
+}, 30000);
+localStorage.setItem('exam_last_date', today());
+</script>
+</body>
+</html>
