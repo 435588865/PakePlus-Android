@@ -919,23 +919,31 @@ function updateCountdown() {
   else { el.textContent = days; sub.textContent = target.getFullYear() + '年' + (target.getMonth()+1) + '月' + target.getDate() + '日'; }
 }
 
-/* ==================== STUDY TIMER ==================== */
+/* ==================== STUDY TIMER (timestamp-based, survives sleep) ==================== */
 let studyTimer = null;
-let studyRemaining = 0;
+let studyEndTime = 0;        // absolute timestamp when timer should finish
 let studyTargetType = null;
-let studyPaused = false;
 
 function updateStudyDisplay() {
-  const m = Math.floor(studyRemaining / 60);
-  const s = studyRemaining % 60;
+  if (studyEndTime <= 0) return;
+  const remaining = Math.max(0, Math.ceil((studyEndTime - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
   document.getElementById('studyDisplay').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  if (remaining <= 0) {
+    clearInterval(studyTimer);
+    studyTimer = null;
+    studyEndTime = 0;
+    ringTimerEnd(studyTargetType);
+    showToast('🔔 ' + studyTargetType + ' 分钟学习完成！');
+    finishStudy();
+  }
 }
 
 function startStudy(minutes) {
   if (studyTimer) return;
   studyTargetType = minutes;
-  studyRemaining = minutes * 60;
-  studyPaused = false;
+  studyEndTime = Date.now() + minutes * 60 * 1000;
 
   const display = document.getElementById('studyDisplay');
   display.classList.add('running');
@@ -945,34 +953,37 @@ function startStudy(minutes) {
   document.getElementById('btnStudyStop').style.display = 'flex';
 
   updateStudyDisplay();
-  studyTimer = setInterval(() => {
-    studyRemaining--;
-    updateStudyDisplay();
-    if (studyRemaining <= 0) {
-      clearInterval(studyTimer);
-      studyTimer = null;
-      ringTimerEnd(studyTargetType);
-      showToast('🔔 ' + studyTargetType + ' 分钟学习完成！');
-      finishStudy();
-    }
-  }, 1000);
+  // Poll every 200ms for smooth display, timestamp-based so sleep-safe
+  studyTimer = setInterval(updateStudyDisplay, 200);
 }
 
 function stopStudy() {
   if (!studyTimer) return;
   clearInterval(studyTimer);
   studyTimer = null;
-  const elapsedSec = studyTargetType * 60 - studyRemaining;
-  const elapsedMin = Math.round(elapsedSec / 60);
-  showToast('学习计时已停止（本次 ' + elapsedMin + ' 分钟）');
-  finishStudy();
+  const now = Date.now();
+  const elapsedMs = Math.max(0, (studyTargetType * 60 * 1000) - Math.max(0, studyEndTime - now));
+  const elapsedMin = Math.round(elapsedMs / 60000);
+  studyEndTime = 0;
+
+  if (elapsedMin > 0) {
+    const td = getTodayData();
+    td.studyMinutes += elapsedMin;
+    td.studySessions.push({ type: studyTargetType, minutes: elapsedMin, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+    saveTodayData(td);
+    showToast('学习计时已停止（本次 ' + elapsedMin + ' 分钟）');
+  } else {
+    showToast('计时已取消');
+  }
+
+  resetStudyUI();
+  renderStudySessions();
+  refreshAll();
 }
 
 function finishStudy() {
-  const elapsedSec = studyTargetType * 60 - studyRemaining;
-  const elapsedMin = Math.round(elapsedSec / 60);
-  if (elapsedMin <= 0) { resetStudyUI(); return; }
-
+  // Timer completed naturally — full duration
+  const elapsedMin = studyTargetType;
   const td = getTodayData();
   td.studyMinutes += elapsedMin;
   td.studySessions.push({ type: studyTargetType, minutes: elapsedMin, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
@@ -984,7 +995,7 @@ function finishStudy() {
 }
 
 function resetStudyUI() {
-  studyRemaining = 0;
+  studyEndTime = 0;
   studyTargetType = null;
   const display = document.getElementById('studyDisplay');
   display.classList.remove('running');
@@ -1045,30 +1056,30 @@ function addSmoke() {
   showToast('✅ 已计入今日抽烟统计');
 }
 
-/* ==================== GAME TIMER ==================== */
+/* ==================== GAME TIMER (timestamp-based, survives sleep) ==================== */
 let gameTimer = null;
-let gameElapsed = 0;
+let gameStartTime = 0;       // absolute timestamp when game started
 let gameRunning = false;
 
 function updateGameDisplay() {
-  const m = Math.floor(gameElapsed / 60);
-  const s = gameElapsed % 60;
+  if (!gameRunning) return;
+  const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
   document.getElementById('gameDisplay').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
 
 function startGame() {
   if (gameRunning) return;
   gameRunning = true;
-  gameElapsed = 0;
+  gameStartTime = Date.now();
   document.getElementById('gameStatus').textContent = '游戏中…';
   document.getElementById('gameStatus').classList.add('running');
   document.getElementById('btnGameStart').disabled = true;
   document.getElementById('btnGameStop').disabled = false;
   updateGameDisplay();
-  gameTimer = setInterval(() => {
-    gameElapsed++;
-    updateGameDisplay();
-  }, 1000);
+  // Poll every 500ms, timestamp-based so sleep-safe
+  gameTimer = setInterval(updateGameDisplay, 500);
 }
 
 function stopGame() {
@@ -1076,22 +1087,26 @@ function stopGame() {
   clearInterval(gameTimer);
   gameTimer = null;
   gameRunning = false;
-  const min = Math.round(gameElapsed / 60);
 
-  const td = getTodayData();
-  td.gameMinutes += min;
-  td.gameSessions.push({ minutes: min, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
-  saveTodayData(td);
+  const elapsedSec = Math.floor((Date.now() - gameStartTime) / 1000);
+  const min = Math.round(elapsedSec / 60);
+  gameStartTime = 0;
+
+  if (min > 0) {
+    const td = getTodayData();
+    td.gameMinutes += min;
+    td.gameSessions.push({ minutes: min, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
+    saveTodayData(td);
+    showToast('本次游玩 ' + min + ' 分钟');
+  }
 
   document.getElementById('gameStatus').textContent = '未开始';
   document.getElementById('gameStatus').classList.remove('running');
   document.getElementById('btnGameStart').disabled = false;
   document.getElementById('btnGameStop').disabled = true;
-  gameElapsed = 0;
   updateGameDisplay();
   renderGameSessions();
   refreshAll();
-  showToast('本次游玩 ' + min + ' 分钟');
 }
 
 function renderGameSessions() {
@@ -1444,6 +1459,28 @@ function initCards() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(function() {});
 }
+
+// Visibility change — refresh timers when coming back from background/sleep
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    if (studyTimer && studyEndTime > 0) {
+      updateStudyDisplay();
+    }
+    if (gameTimer && gameRunning) {
+      updateGameDisplay();
+    }
+  }
+});
+
+// Also refresh on pageshow (tab restore)
+window.addEventListener('pageshow', function() {
+  if (studyTimer && studyEndTime > 0) {
+    updateStudyDisplay();
+  }
+  if (gameTimer && gameRunning) {
+    updateGameDisplay();
+  }
+});
 
 /* ==================== INIT ==================== */
 initCards();
