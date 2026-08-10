@@ -266,6 +266,20 @@ input[type="date"], input[type="time"] { min-width: 0; }
 .stat-val.good { color: var(--green); }
 
 /* ===== Sleep Card ===== */
+.sleep-status {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 0 4px;
+  color: var(--text2);
+}
+.sleep-status.sleeping { color: var(--accent); }
+.sleep-info {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+  padding: 2px 0 8px;
+}
 .sleep-result {
   margin-top: 10px;
   padding: 10px;
@@ -586,17 +600,15 @@ input[type="date"], input[type="time"] { min-width: 0; }
 
   <!-- Module 6: Sleep -->
   <div class="card" id="card-sleep">
-    <div class="card-title" onclick="toggleCard('sleep')"><span class="icon">😴</span>睡眠录入<span class="arrow">▼</span></div>
+    <div class="card-title" onclick="toggleCard('sleep')"><span class="icon">😴</span>睡眠打卡<span class="arrow">▼</span></div>
     <div class="card-body">
-    <div class="input-row">
-      <label style="font-size:14px;min-width:60px;">入睡</label>
-      <input type="time" id="sleepBed">
+    <div class="sleep-status" id="sleepStatus">尚未记录</div>
+    <div class="sleep-info" id="sleepInfo" style="display:none;"></div>
+    <div class="timer-btns">
+      <button class="btn btn-primary" onclick="goToBed()" id="btnBed">🌙 入睡</button>
+      <button class="btn btn-primary2" onclick="wakeUp()" id="btnWake" disabled>☀️ 睡醒</button>
     </div>
-    <div class="input-row">
-      <label style="font-size:14px;min-width:60px;">起床</label>
-      <input type="time" id="sleepWake">
-    </div>
-    <button class="btn btn-primary btn-block" onclick="submitSleep()" style="margin-top:4px;">提交睡眠记录</button>
+    <button class="btn btn-danger btn-sm btn-block" onclick="resetSleep()" id="btnResetSleep" style="display:none;margin-top:8px;">重新记录</button>
     <div class="sleep-result" id="sleepResult" style="display:none;"></div>
     </div>
   </div>
@@ -919,7 +931,7 @@ function updateCountdown() {
   else { el.textContent = days; sub.textContent = target.getFullYear() + '年' + (target.getMonth()+1) + '月' + target.getDate() + '日'; }
 }
 
-/* ==================== STUDY TIMER (timestamp-based, survives sleep) ==================== */
+/* ==================== STUDY TIMER (persistent timestamp, survives close/reboot) ==================== */
 let studyTimer = null;
 let studyEndTime = 0;        // absolute timestamp when timer should finish
 let studyTargetType = null;
@@ -934,6 +946,7 @@ function updateStudyDisplay() {
     clearInterval(studyTimer);
     studyTimer = null;
     studyEndTime = 0;
+    localStorage.removeItem('wb_study_pending');
     ringTimerEnd(studyTargetType);
     showToast('🔔 ' + studyTargetType + ' 分钟学习完成！');
     finishStudy();
@@ -945,6 +958,12 @@ function startStudy(minutes) {
   studyTargetType = minutes;
   studyEndTime = Date.now() + minutes * 60 * 1000;
 
+  // Persist to localStorage so timer survives page close / app kill
+  localStorage.setItem('wb_study_pending', JSON.stringify({
+    endTime: studyEndTime,
+    targetType: minutes
+  }));
+
   const display = document.getElementById('studyDisplay');
   display.classList.add('running');
   document.getElementById('studyLabel').textContent = minutes + ' 分钟专注学习中…';
@@ -953,7 +972,6 @@ function startStudy(minutes) {
   document.getElementById('btnStudyStop').style.display = 'flex';
 
   updateStudyDisplay();
-  // Poll every 200ms for smooth display, timestamp-based so sleep-safe
   studyTimer = setInterval(updateStudyDisplay, 200);
 }
 
@@ -961,10 +979,12 @@ function stopStudy() {
   if (!studyTimer) return;
   clearInterval(studyTimer);
   studyTimer = null;
+
   const now = Date.now();
   const elapsedMs = Math.max(0, (studyTargetType * 60 * 1000) - Math.max(0, studyEndTime - now));
   const elapsedMin = Math.round(elapsedMs / 60000);
   studyEndTime = 0;
+  localStorage.removeItem('wb_study_pending');
 
   if (elapsedMin > 0) {
     const td = getTodayData();
@@ -989,6 +1009,7 @@ function finishStudy() {
   td.studySessions.push({ type: studyTargetType, minutes: elapsedMin, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) });
   saveTodayData(td);
 
+  localStorage.removeItem('wb_study_pending');
   resetStudyUI();
   renderStudySessions();
   refreshAll();
@@ -1004,6 +1025,39 @@ function resetStudyUI() {
   document.getElementById('btnStudy25').disabled = false;
   document.getElementById('btnStudy45').disabled = false;
   document.getElementById('btnStudyStop').style.display = 'none';
+}
+
+// Restore a running timer on page load
+function restoreStudyTimer() {
+  const raw = localStorage.getItem('wb_study_pending');
+  if (!raw) return;
+  try {
+    const p = JSON.parse(raw);
+    if (!p.endTime || !p.targetType) { localStorage.removeItem('wb_study_pending'); return; }
+    const now = Date.now();
+    if (p.endTime <= now) {
+      // Timer already finished while page was closed — auto-complete
+      localStorage.removeItem('wb_study_pending');
+      studyTargetType = p.targetType;
+      ringTimerEnd(studyTargetType);
+      finishStudy();
+      showToast('🔔 学习计时已完成（' + p.targetType + ' 分钟）');
+      return;
+    }
+    // Timer still running — restore it
+    studyEndTime = p.endTime;
+    studyTargetType = p.targetType;
+    const display = document.getElementById('studyDisplay');
+    display.classList.add('running');
+    document.getElementById('studyLabel').textContent = p.targetType + ' 分钟专注学习中…';
+    document.getElementById('btnStudy25').disabled = true;
+    document.getElementById('btnStudy45').disabled = true;
+    document.getElementById('btnStudyStop').style.display = 'flex';
+    updateStudyDisplay();
+    studyTimer = setInterval(updateStudyDisplay, 200);
+  } catch(e) {
+    localStorage.removeItem('wb_study_pending');
+  }
 }
 
 function renderStudySessions() {
@@ -1056,7 +1110,7 @@ function addSmoke() {
   showToast('✅ 已计入今日抽烟统计');
 }
 
-/* ==================== GAME TIMER (timestamp-based, survives sleep) ==================== */
+/* ==================== GAME TIMER (persistent timestamp, survives close/reboot) ==================== */
 let gameTimer = null;
 let gameStartTime = 0;       // absolute timestamp when game started
 let gameRunning = false;
@@ -1073,12 +1127,15 @@ function startGame() {
   if (gameRunning) return;
   gameRunning = true;
   gameStartTime = Date.now();
+
+  // Persist to localStorage so timer survives page close / app kill
+  localStorage.setItem('wb_game_pending', JSON.stringify({ startTime: gameStartTime }));
+
   document.getElementById('gameStatus').textContent = '游戏中…';
   document.getElementById('gameStatus').classList.add('running');
   document.getElementById('btnGameStart').disabled = true;
   document.getElementById('btnGameStop').disabled = false;
   updateGameDisplay();
-  // Poll every 500ms, timestamp-based so sleep-safe
   gameTimer = setInterval(updateGameDisplay, 500);
 }
 
@@ -1091,6 +1148,7 @@ function stopGame() {
   const elapsedSec = Math.floor((Date.now() - gameStartTime) / 1000);
   const min = Math.round(elapsedSec / 60);
   gameStartTime = 0;
+  localStorage.removeItem('wb_game_pending');
 
   if (min > 0) {
     const td = getTodayData();
@@ -1107,6 +1165,27 @@ function stopGame() {
   updateGameDisplay();
   renderGameSessions();
   refreshAll();
+}
+
+// Restore a running game timer on page load
+function restoreGameTimer() {
+  const raw = localStorage.getItem('wb_game_pending');
+  if (!raw) return;
+  try {
+    const p = JSON.parse(raw);
+    if (!p.startTime) { localStorage.removeItem('wb_game_pending'); return; }
+    // Game was running when page closed — restore it
+    gameRunning = true;
+    gameStartTime = p.startTime;
+    document.getElementById('gameStatus').textContent = '游戏中…';
+    document.getElementById('gameStatus').classList.add('running');
+    document.getElementById('btnGameStart').disabled = true;
+    document.getElementById('btnGameStop').disabled = false;
+    updateGameDisplay();
+    gameTimer = setInterval(updateGameDisplay, 500);
+  } catch(e) {
+    localStorage.removeItem('wb_game_pending');
+  }
 }
 
 function renderGameSessions() {
@@ -1148,23 +1227,62 @@ function renderExpenses() {
 }
 
 /* ==================== SLEEP ==================== */
-function submitSleep() {
-  const bedVal = document.getElementById('sleepBed').value;
-  const wakeVal = document.getElementById('sleepWake').value;
-  if (!bedVal || !wakeVal) { showToast('请填写入睡和起床时间'); return; }
+let sleepBedTimestamp = null;
+let sleepState = 'idle'; // 'idle' | 'sleeping' | 'done'
 
-  const [bh, bm] = bedVal.split(':').map(Number);
-  const [wh, wm] = wakeVal.split(':').map(Number);
-  let bedMin = bh * 60 + bm;
-  let wakeMin = wh * 60 + wm;
-  if (wakeMin <= bedMin) wakeMin += 24 * 60;
-  const totalMin = wakeMin - bedMin;
+function goToBed() {
+  sleepBedTimestamp = Date.now();
+  sleepState = 'sleeping';
+  const bedTime = new Date(sleepBedTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+
+  // Save pending bed timestamp to localStorage so it survives page refresh
+  localStorage.setItem('wb_sleep_pending', JSON.stringify({ bedTimestamp: sleepBedTimestamp, bedTime }));
+
+  document.getElementById('sleepStatus').textContent = '已记录';
+  document.getElementById('sleepStatus').className = 'sleep-status sleeping';
+  document.getElementById('sleepInfo').style.display = 'block';
+  document.getElementById('sleepInfo').textContent = '入睡时间 ' + bedTime;
+  document.getElementById('btnBed').disabled = true;
+  document.getElementById('btnWake').disabled = false;
+  document.getElementById('btnResetSleep').style.display = 'block';
+  document.getElementById('sleepResult').style.display = 'none';
+  showToast('已记录入睡 ' + bedTime);
+}
+
+function wakeUp() {
+  if (!sleepBedTimestamp) return;
+  const wakeTimestamp = Date.now();
+  const bedTime = new Date(sleepBedTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+  const wakeTime = new Date(wakeTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+
+  // Calculate duration
+  const diffMs = wakeTimestamp - sleepBedTimestamp;
+  const totalMin = diffMs / 60000;
   const hours = (totalMin / 60).toFixed(1);
-  const qualified = bh < 23 && parseFloat(hours) >= 7;
+
+  // Check qualified: bed before 23:00 and sleep >= 7 hours
+  const bedHour = new Date(sleepBedTimestamp).getHours();
+  const qualified = bedHour < 23 && parseFloat(hours) >= 7;
 
   const td = getTodayData();
-  td.sleep = { bedTime: bedVal, wakeTime: wakeVal, duration: parseFloat(hours), qualified };
+  td.sleep = {
+    bedTimestamp: sleepBedTimestamp,
+    wakeTimestamp: wakeTimestamp,
+    bedTime: bedTime,
+    wakeTime: wakeTime,
+    duration: parseFloat(hours),
+    qualified
+  };
   saveTodayData(td);
+  localStorage.removeItem('wb_sleep_pending');
+
+  sleepState = 'done';
+  document.getElementById('sleepStatus').textContent = '记录完成';
+  document.getElementById('sleepStatus').className = 'sleep-status';
+  document.getElementById('sleepInfo').textContent = '入睡 ' + bedTime + ' → 睡醒 ' + wakeTime;
+  document.getElementById('btnBed').disabled = true;
+  document.getElementById('btnWake').disabled = true;
+  document.getElementById('btnResetSleep').style.display = 'block';
 
   const resultEl = document.getElementById('sleepResult');
   resultEl.style.display = 'block';
@@ -1176,13 +1294,69 @@ function submitSleep() {
     resultEl.textContent = '❌ 睡眠未达标 — ' + hours + '小时（标准：23:00前入睡，≥7小时）';
   }
   refreshAll();
-  showToast('睡眠记录已保存');
+  showToast('睡眠记录完成：' + hours + '小时');
+}
+
+function resetSleep() {
+  sleepBedTimestamp = null;
+  sleepState = 'idle';
+  localStorage.removeItem('wb_sleep_pending');
+  document.getElementById('sleepStatus').textContent = '尚未记录';
+  document.getElementById('sleepStatus').className = 'sleep-status';
+  document.getElementById('sleepInfo').style.display = 'none';
+  document.getElementById('sleepInfo').textContent = '';
+  document.getElementById('btnBed').disabled = false;
+  document.getElementById('btnWake').disabled = true;
+  document.getElementById('btnResetSleep').style.display = 'none';
+  document.getElementById('sleepResult').style.display = 'none';
+  showToast('已重置，可以重新记录');
 }
 
 function renderSleepResult() {
   const td = getTodayData();
   const resultEl = document.getElementById('sleepResult');
-  if (!td.sleep) { resultEl.style.display = 'none'; return; }
+  if (!td.sleep) {
+    resultEl.style.display = 'none';
+    // Check if there's a pending sleep (clicked "入睡" but not yet "睡醒")
+    const pending = localStorage.getItem('wb_sleep_pending');
+    if (pending) {
+      try {
+        const p = JSON.parse(pending);
+        sleepBedTimestamp = p.bedTimestamp;
+        sleepState = 'sleeping';
+        document.getElementById('sleepStatus').textContent = '已记录';
+        document.getElementById('sleepStatus').className = 'sleep-status sleeping';
+        document.getElementById('sleepInfo').style.display = 'block';
+        document.getElementById('sleepInfo').textContent = '入睡时间 ' + p.bedTime;
+        document.getElementById('btnBed').disabled = true;
+        document.getElementById('btnWake').disabled = false;
+        document.getElementById('btnResetSleep').style.display = 'block';
+        return;
+      } catch(e) { localStorage.removeItem('wb_sleep_pending'); }
+    }
+    // Reset to idle state if no sleep data and no pending
+    sleepBedTimestamp = null;
+    sleepState = 'idle';
+    document.getElementById('sleepStatus').textContent = '尚未记录';
+    document.getElementById('sleepStatus').className = 'sleep-status';
+    document.getElementById('sleepInfo').style.display = 'none';
+    document.getElementById('btnBed').disabled = false;
+    document.getElementById('btnWake').disabled = true;
+    document.getElementById('btnResetSleep').style.display = 'none';
+    return;
+  }
+
+  // Restore state from saved data
+  sleepBedTimestamp = td.sleep.bedTimestamp;
+  document.getElementById('sleepStatus').textContent = '记录完成';
+  document.getElementById('sleepStatus').className = 'sleep-status';
+  document.getElementById('sleepInfo').style.display = 'block';
+  document.getElementById('sleepInfo').textContent = '入睡 ' + td.sleep.bedTime + ' → 睡醒 ' + td.sleep.wakeTime;
+  document.getElementById('btnBed').disabled = true;
+  document.getElementById('btnWake').disabled = true;
+  document.getElementById('btnResetSleep').style.display = 'block';
+  sleepState = 'done';
+
   resultEl.style.display = 'block';
   if (td.sleep.qualified) {
     resultEl.className = 'sleep-result pass';
@@ -1211,11 +1385,10 @@ function refreshPage() {
   renderGameSessions();
   renderExpenses();
   renderSleepResult();
-  const td = getTodayData();
-  if (td.sleep) {
-    document.getElementById('sleepBed').value = td.sleep.bedTime;
-    document.getElementById('sleepWake').value = td.sleep.wakeTime;
-  }
+  renderStudySessions();
+  renderExercises();
+  renderGameSessions();
+  renderExpenses();
 }
 
 /* ==================== HISTORY ==================== */
@@ -1463,6 +1636,7 @@ if ('serviceWorker' in navigator) {
 // Visibility change — refresh timers when coming back from background/sleep
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
+    // studyTimer: timestamp-based, just refresh display
     if (studyTimer && studyEndTime > 0) {
       updateStudyDisplay();
     }
@@ -1472,8 +1646,14 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-// Also refresh on pageshow (tab restore)
+// Study timer survives page close — restore on pageshow too
 window.addEventListener('pageshow', function() {
+  if (!studyTimer) {
+    restoreStudyTimer();
+  }
+  if (!gameTimer) {
+    restoreGameTimer();
+  }
   if (studyTimer && studyEndTime > 0) {
     updateStudyDisplay();
   }
@@ -1484,6 +1664,8 @@ window.addEventListener('pageshow', function() {
 
 /* ==================== INIT ==================== */
 initCards();
+restoreStudyTimer();  // restore running study timer if page was closed mid-session
+restoreGameTimer();   // restore running game timer if page was closed mid-session
 refreshPage();
 loadExamDate();
 loadRingtoneNames();
