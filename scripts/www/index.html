@@ -66,12 +66,6 @@ body {
 .btn-danger { background:#FFF0F1; color:var(--rose); }
 .btn-sm { padding:8px 14px; font-size:13px; }
 .btn-block { width:100%; }
-.sleep-status { text-align:center; padding:8px 0; font-size:16px; font-weight:700; color:var(--text2); }
-.sleep-status.recording { color:var(--rose); }
-.sleep-info { text-align:center; font-size:13px; color:var(--text3); margin-bottom:10px; }
-.sleep-result { margin-top:12px; padding:12px; border-radius:14px; text-align:center; font-weight:700; font-size:15px; }
-.sleep-result.pass { background:#E8F9F0; color:var(--green); }
-.sleep-result.fail { background:#FFF0F1; color:var(--rose); }
 .detail-list { margin-top:10px; }
 .detail-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--border); font-size:14px; }
 .detail-item:last-child { border-bottom:none; }
@@ -89,6 +83,27 @@ body {
 .chart-legend span::before { content:''; display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:middle; }
 .chart-legend .lg-pass::before { background:var(--green); }
 .chart-legend .lg-fail::before { background:var(--rose); }
+.chart-legend .lg-waist::before { background:#FF4D6D; }
+.chart-legend .lg-thigh::before { background:#FF8FA3; }
+.chart-legend .lg-hip::before { background:#C77DFF; }
+
+/* SVG icon block (same footprint as .card-icon for image icons) */
+.card-icon-svg { width:56px; height:56px; border-radius:16px; border:2px solid var(--pink3); background:var(--pink4); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* Protein progress bar */
+.protein-bar-wrap { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.protein-bar { flex:1; height:10px; background:var(--pink3); border-radius:6px; overflow:hidden; }
+.protein-bar-fill { height:100%; border-radius:6px; background:linear-gradient(90deg,var(--pink1),var(--rose)); transition:width 0.3s; }
+.protein-bar-fill.over { background:linear-gradient(90deg,#2ECC71,#27AE60); }
+.protein-bar-label { font-size:13px; font-weight:700; color:var(--rose); min-width:38px; text-align:right; }
+
+/* Girth display */
+.girth-display { display:flex; gap:8px; margin-top:10px; }
+.girth-cell { flex:1; background:var(--pink4); border-radius:12px; padding:10px 6px; text-align:center; }
+.girth-cell .k { font-size:11px; color:var(--text3); }
+.girth-cell .v { font-size:17px; font-weight:700; color:var(--rose); margin-top:2px; }
+.girth-cell .v.purple { color:#C77DFF; }
+.girth-cell .u { font-size:10px; color:var(--text3); }
 .page { display:none; padding-bottom:20px; }
 .page.active { display:block; }
 .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.96); backdrop-filter:blur(12px); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:10px 0 calc(10px + env(safe-area-inset-bottom)); z-index:100; }
@@ -141,9 +156,9 @@ hr { border:none; border-top:1px dashed var(--border); margin:8px 0; }
       <div class="sub"><span id="statDietName">—</span> · 大卡</div>
     </div>
     <div class="stat-card">
-      <div class="label"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg><span id="labelExpense">今日</span>支出</div>
-      <div class="value" id="statExpense">0.00</div>
-      <div class="sub">元</div>
+      <div class="label"><svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 5.5 3.5 7.2V21h1.8v-3.3c.6.2 1.2.3 1.9.3.6 0 1.2-.1 1.8-.3V21h1.8v-5.8C18.5 13.5 20 11 20 8c0-3.5-2.5-6-6-6h-2zm-1 2h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg><span id="labelProtein">今日</span>蛋白质</div>
+      <div class="value" id="statProtein">0</div>
+      <div class="sub"><span id="statProteinState">—</span> · 目标90g</div>
     </div>
     <div class="stat-card">
       <div class="label"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm-1-11h2v3h3v2h-3v3h-2v-3H8v-2h3V8z"/></svg><span id="labelWeight">当日</span>体重</div>
@@ -151,9 +166,9 @@ hr { border:none; border-top:1px dashed var(--border); margin:8px 0; }
       <div class="sub" id="statWeightChange">斤</div>
     </div>
     <div class="stat-card">
-      <div class="label"><svg viewBox="0 0 24 24"><path d="M23 3H1v18h22V3zm-2 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7c0 1.66-1.34 3-3 3s-3-1.34-3-3z"/></svg><span id="labelSleep">当日</span>睡眠</div>
-      <div class="value" id="statSleep">—</div>
-      <div class="sub" id="statSleepQual">—</div>
+      <div class="label"><svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-4v2h-2v-2h-2v2H8v-2H4v-2h4v-2h2v2h2v-2h2v2h4v2zM2 20h20v2H2v-2z"/></svg><span id="labelGirth">当日</span>腰围</div>
+      <div class="value" id="statWaist">—</div>
+      <div class="sub" id="statGirthSub">cm</div>
     </div>
   </div>
 
@@ -188,30 +203,6 @@ hr { border:none; border-top:1px dashed var(--border); margin:8px 0; }
       </div>
     </div>
 
-    <!-- Expense -->
-    <div class="card" id="card-expense">
-      <div class="card-header" onclick="toggleCard('expense')">
-        <img src="data:image/jpeg;base64,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" class="card-icon" alt="支出">
-        <div class="card-title">日常支出</div>
-        <span class="card-arrow">▼</span>
-      </div>
-      <div class="card-body">
-        <div class="input-row">
-          <input type="text" id="expType" placeholder="类型: 餐饮、交通...">
-        </div>
-        <div class="input-row">
-          <input type="number" id="expAmount" placeholder="金额 (元)" min="0" step="0.01">
-          <button class="btn btn-primary btn-sm" onclick="addExpense()">完成</button>
-        </div>
-        <div class="detail-list" id="expList"></div>
-        <div style="text-align:right;margin-top:10px;font-size:16px;font-weight:700;color:var(--rose);">总消费: <span id="expTotal">0.00</span> 元</div>
-        <div class="chart-wrap">
-          <div class="chart-title">支出趋势 (近7天·每日总额)</div>
-          <div id="expChart" class="weight-empty">暂无数据</div>
-        </div>
-      </div>
-    </div>
-
     <!-- Weight -->
     <div class="card" id="card-weight">
       <div class="card-header" onclick="toggleCard('weight')">
@@ -231,45 +222,71 @@ hr { border:none; border-top:1px dashed var(--border); margin:8px 0; }
       </div>
     </div>
 
-    <!-- Sleep -->
-    <div class="card" id="card-sleep">
-      <div class="card-header" onclick="toggleCard('sleep')">
-        <img src="data:image/jpeg;base64,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" class="card-icon" alt="睡眠">
-        <div class="card-title">睡眠时间</div>
+    <!-- Protein -->
+    <div class="card" id="card-protein">
+      <div class="card-header" onclick="toggleCard('protein')">
+        <div class="card-icon-svg">
+          <svg viewBox="0 0 24 24" width="30" height="30">
+            <path d="M12 2C8.5 2 6 4.5 6 8c0 3 1.5 5.5 3.5 7.2V21h1.8v-3.3c.6.2 1.2.3 1.9.3.6 0 1.2-.1 1.8-.3V21h1.8v-5.8C18.5 13.5 20 11 20 8c0-3.5-2.5-6-6-6h-2zm-1 2h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2c-1.1 0-2-.9-2-2s.9-2 2-2z" fill="#FF8FA3"/>
+          </svg>
+        </div>
+        <div class="card-title">蛋白质摄入</div>
         <span class="card-arrow">▼</span>
       </div>
       <div class="card-body">
-        <!-- Today: click-based recording -->
-        <div id="sleepClickUI">
-          <div class="sleep-status" id="sleepStatus">尚未记录</div>
-          <div class="sleep-info" id="sleepInfo" style="display:none;"></div>
-          <div style="display:flex;gap:10px;">
-            <button class="btn btn-primary" onclick="goToBed()" id="btnBed" style="flex:1;">入睡</button>
-            <button class="btn btn-primary2" onclick="wakeUp()" id="btnWake" disabled style="flex:1;">睡醒</button>
-          </div>
-          <button class="btn btn-danger btn-sm btn-block" onclick="resetSleep()" id="btnResetSleep" style="display:none;margin-top:10px;">重新记录</button>
+        <div class="input-row">
+          <input type="text" id="proteinName" placeholder="食物名称 (可选)">
         </div>
-        <!-- Past dates: manual time entry -->
-        <div id="sleepManualUI" style="display:none;">
-          <div class="input-row">
-            <label style="font-size:14px;min-width:60px;">入睡</label>
-            <input type="time" id="manualSleepBed">
-          </div>
-          <div class="input-row">
-            <label style="font-size:14px;min-width:60px;">睡醒</label>
-            <input type="time" id="manualSleepWake">
-          </div>
-          <button class="btn btn-primary btn-block" onclick="submitManualSleep()" style="margin-top:4px;">保存睡眠记录</button>
-          <button class="btn btn-danger btn-sm btn-block" onclick="clearManualSleep()" id="btnClearManualSleep" style="display:none;margin-top:8px;">删除该日记录</button>
-          <div style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center;">补录过去某天的睡眠</div>
+        <div class="input-row">
+          <input type="number" id="proteinVal" placeholder="蛋白质 (克)" min="0" step="1" inputmode="numeric">
+          <button class="btn btn-primary btn-sm" onclick="addProtein()">+ 添加</button>
         </div>
-        <div class="sleep-result" id="sleepResult" style="display:none;"></div>
+        <div class="detail-list" id="proteinList"></div>
+        <div style="text-align:right;margin-top:10px;font-size:16px;font-weight:700;color:var(--rose);">当日总计: <span id="proteinTotal">0</span> 克 <span style="font-size:13px;color:var(--text3);">/ 目标 90克</span></div>
+        <div class="protein-bar-wrap">
+          <div class="protein-bar"><div class="protein-bar-fill" id="proteinBarFill" style="width:0%;"></div></div>
+          <div class="protein-bar-label" id="proteinBarLabel">0%</div>
+        </div>
         <div class="chart-wrap">
-          <div class="chart-title">睡眠趋势 (近7天·小时)</div>
-          <div id="sleepChart" class="weight-empty">暂无数据</div>
-          <div class="chart-legend" style="display:none;" id="sleepLegend">
-            <span class="lg-pass">达标</span>
-            <span class="lg-fail">未达标</span>
+          <div class="chart-title">蛋白质趋势 (近7天·克 · 虚线=90克标准)</div>
+          <div id="proteinChart" class="weight-empty">暂无数据</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Girth -->
+    <div class="card" id="card-girth">
+      <div class="card-header" onclick="toggleCard('girth')">
+        <div class="card-icon-svg">
+          <svg viewBox="0 0 24 24" width="30" height="30">
+            <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-4v2h-2v-2h-2v2H8v-2H4v-2h4v-2h2v2h2v-2h2v2h4v2z" fill="#C77DFF"/>
+          </svg>
+        </div>
+        <div class="card-title">身体围度</div>
+        <span class="card-arrow">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="input-row">
+          <label style="font-size:15px;min-width:48px;color:var(--text2);">腰围</label>
+          <input type="number" id="girthWaist" placeholder="厘米 (cm)" min="0" step="0.1" inputmode="decimal">
+        </div>
+        <div class="input-row">
+          <label style="font-size:15px;min-width:48px;color:var(--text2);">腿围</label>
+          <input type="number" id="girthThigh" placeholder="厘米 (cm)" min="0" step="0.1" inputmode="decimal">
+        </div>
+        <div class="input-row">
+          <label style="font-size:15px;min-width:48px;color:var(--text2);">臀围</label>
+          <input type="number" id="girthHip" placeholder="厘米 (cm)" min="0" step="0.1" inputmode="decimal">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="saveGirth()" style="margin-top:4px;">保存围度</button>
+        <div class="girth-display" id="girthDisplay"></div>
+        <div class="chart-wrap">
+          <div class="chart-title">围度趋势 (近7天·cm)</div>
+          <div id="girthChart" class="weight-empty">暂无数据</div>
+          <div class="chart-legend" id="girthLegend" style="display:none;">
+            <span class="lg-waist">腰围</span>
+            <span class="lg-thigh">腿围</span>
+            <span class="lg-hip">臀围</span>
           </div>
         </div>
       </div>
@@ -313,7 +330,7 @@ hr { border:none; border-top:1px dashed var(--border); margin:8px 0; }
     <div class="tip">
       所有数据存储在浏览器本地，建议定期导出备份。<br>
       清除缓存前记得先导出！<br>
-      睡眠标准：23:00前入睡，睡眠 7小时。
+      蛋白质目标：每日 90 克。
     </div>
   </div>
 </div>
@@ -376,32 +393,19 @@ function changeDate(delta) {
     showToast('不能记录未来的数据');
     return;
   }
-  // If a sleep record is in progress, warn the user
-  if (sleepState === 'sleeping') {
-    showConfirm('当前有未完成的睡眠记录，切换日期会丢失这个时间戳，确定继续？', () => {
-      finishChangeDate(next);
-    });
-  } else {
-    finishChangeDate(next);
-  }
+  finishChangeDate(next);
 }
 
 function finishChangeDate(next) {
   editingDate = next;
-  // Clear any pending sleep state so it doesn't leak across dates
-  if (sleepState === 'sleeping') {
-    localStorage.removeItem('wb_pink_sleep_pending');
-    sleepBedTimestamp = null;
-    sleepState = 'idle';
-  }
   refreshHome();
   renderDiet();
-  renderExpenses();
-  renderWeightChart();
   renderDietChart();
-  renderExpenseChart();
-  renderSleepChart();
-  renderSleep();
+  renderProtein();
+  renderProteinChart();
+  renderWeightChart();
+  renderGirth();
+  renderGirthChart();
   updateDateNav();
 }
 
@@ -456,8 +460,12 @@ function saveTodayData(td) {
 
 function getEditingData() {
   const db = getDB();
-  if (!db[editingDate]) db[editingDate] = { diet: [], expenses: [], weight: null, sleep: null };
-  return db[editingDate];
+  if (!db[editingDate]) db[editingDate] = { diet: [], protein: [], weight: null, girth: null };
+  // Backfill new fields for records created by older versions
+  const rec = db[editingDate];
+  if (!Array.isArray(rec.protein)) rec.protein = [];
+  if (rec.girth === undefined) rec.girth = null;
+  return rec;
 }
 
 function saveEditingData(d) {
@@ -583,47 +591,240 @@ function htmlEscape(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/* ==================== EXPENSE ==================== */
-function addExpense() {
-  const typeEl = document.getElementById('expType');
-  const amtEl = document.getElementById('expAmount');
-  const type = typeEl.value.trim();
-  const amount = parseFloat(amtEl.value);
-  if (!type) { showToast('请输入支出类型'); return; }
-  if (isNaN(amount) || amount <= 0) { showToast('请输入有效金额'); return; }
-  const td = getTodayData();
-  td.expenses.push({ type, amount: Math.round(amount * 100) / 100 });
-  saveTodayData(td);
-  typeEl.value = '';
-  amtEl.value = '';
-  typeEl.focus();
-  renderExpenses();
-  renderExpenseChart();
+/* ==================== PROTEIN ==================== */
+const PROTEIN_GOAL = 90;
+
+function addProtein() {
+  const nameEl = document.getElementById('proteinName');
+  const valEl = document.getElementById('proteinVal');
+  const name = nameEl.value.trim();
+  const g = parseFloat(valEl.value);
+  if (isNaN(g) || g <= 0) { showToast('请输入有效蛋白质克数'); valEl.focus(); return; }
+  const d = getEditingData();
+  d.protein.push({ name: name || ('蛋白' + (d.protein.length + 1)), g: Math.round(g * 10) / 10 });
+  saveEditingData(d);
+  nameEl.value = '';
+  valEl.value = '';
+  nameEl.focus();
+  renderProtein();
+  renderProteinChart();
   refreshHome();
-  showToast('已记录: ' + type + ' ' + amount.toFixed(2) + ' 元');
+  showToast('已记录 ' + (name || '蛋白质') + ' · ' + g + ' 克');
 }
 
-function deleteExpense(idx) {
-  const td = getTodayData();
-  td.expenses.splice(idx, 1);
-  saveTodayData(td);
-  renderExpenses();
-  renderExpenseChart();
+function deleteProtein(idx) {
+  const d = getEditingData();
+  d.protein.splice(idx, 1);
+  saveEditingData(d);
+  renderProtein();
+  renderProteinChart();
   refreshHome();
 }
 
-function renderExpenses() {
-  const td = getTodayData();
-  const list = document.getElementById('expList');
-  if (td.expenses.length === 0) { list.innerHTML = ''; return; }
-  list.innerHTML = td.expenses.map((e, i) =>
+function proteinTotalOf(rec) {
+  if (!rec || !Array.isArray(rec.protein)) return 0;
+  return rec.protein.reduce((s, it) => s + (typeof it === 'object' ? it.g : 0), 0);
+}
+
+function renderProtein() {
+  const d = getEditingData();
+  const list = document.getElementById('proteinList');
+  const total = Math.round(proteinTotalOf(d) * 10) / 10;
+
+  document.getElementById('proteinTotal').textContent = total;
+
+  // Progress bar
+  const pct = Math.min(100, Math.round(total / PROTEIN_GOAL * 100));
+  const fill = document.getElementById('proteinBarFill');
+  fill.style.width = pct + '%';
+  if (total >= PROTEIN_GOAL) fill.classList.add('over'); else fill.classList.remove('over');
+  document.getElementById('proteinBarLabel').textContent = Math.round(total / PROTEIN_GOAL * 100) + '%';
+
+  if (!d.protein || d.protein.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = d.protein.map((it, i) =>
     '<div class="detail-item">' +
-    '<span class="detail-name">' + (i+1) + '. ' + htmlEscape(e.type) + '</span>' +
-    '<span class="detail-value">¥' + e.amount.toFixed(2) + '</span>' +
-    '<button class="detail-del" onclick="deleteExpense(' + i + ')">删除</button>' +
+    '<span class="detail-name">' + (i+1) + '. ' + htmlEscape(it.name) + ' · ' + it.g + ' 克</span>' +
+    '<button class="detail-del" onclick="deleteProtein(' + i + ')">删除</button>' +
     '</div>'
   ).join('');
-  document.getElementById('expTotal').textContent = td.expenses.reduce((s,e) => s + e.amount, 0).toFixed(2);
+}
+
+function renderProteinChart() {
+  const chartEl = document.getElementById('proteinChart');
+  const dates = lastNDates(7);
+  const db = getDB();
+  const values = dates.map(d => proteinTotalOf(db[d]));
+
+  if (!values.some(v => v > 0)) {
+    chartEl.className = 'weight-empty';
+    chartEl.innerHTML = '暂无数据，记录蛋白质后显示趋势';
+    return;
+  }
+
+  chartEl.className = 'chart-wrap';
+  chartEl.innerHTML = '<div class="chart-title">蛋白质趋势 (近7天·克)</div>' +
+    '<svg viewBox="0 0 320 170" style="width:100%; height:auto; max-width:400px; display:block; margin:0 auto;">' +
+    buildLineSvg({
+      labels: dates.map(d => d.slice(5)),
+      values: values,
+      color: '#FF4D6D',
+      goal: PROTEIN_GOAL,
+      showValues: true
+    }) +
+    '</svg>';
+}
+
+/* ==================== GIRTH ==================== */
+function saveGirth() {
+  const wEl = document.getElementById('girthWaist');
+  const tEl = document.getElementById('girthThigh');
+  const hEl = document.getElementById('girthHip');
+  const waist = parseFloat(wEl.value);
+  const thigh = parseFloat(tEl.value);
+  const hip = parseFloat(hEl.value);
+
+  if (isNaN(waist) && isNaN(thigh) && isNaN(hip)) { showToast('请至少填写一项围度'); return; }
+
+  const d = getEditingData();
+  const prev = d.girth || {};
+  d.girth = {
+    waist: isNaN(waist) ? (prev.waist || null) : Math.round(waist * 10) / 10,
+    thigh: isNaN(thigh) ? (prev.thigh || null) : Math.round(thigh * 10) / 10,
+    hip:   isNaN(hip)   ? (prev.hip   || null) : Math.round(hip   * 10) / 10
+  };
+  saveEditingData(d);
+  wEl.value = ''; tEl.value = ''; hEl.value = '';
+  renderGirth();
+  renderGirthChart();
+  refreshHome();
+  showToast('围度已保存');
+}
+
+function clearGirth() {
+  const d = getEditingData();
+  d.girth = null;
+  saveEditingData(d);
+  renderGirth();
+  renderGirthChart();
+  refreshHome();
+  showToast('已清除当日围度');
+}
+
+function renderGirth() {
+  const d = getEditingData();
+  const box = document.getElementById('girthDisplay');
+  const g = d.girth;
+  if (!g || (!g.waist && !g.thigh && !g.hip)) {
+    box.innerHTML = '';
+    return;
+  }
+  const cell = (k, v, cls) =>
+    '<div class="girth-cell"><div class="k">' + k + '</div>' +
+    '<div class="v ' + (cls || '') + '">' + (v != null ? v : '—') + '</div>' +
+    '<div class="u">cm</div></div>';
+  box.innerHTML = cell('腰围', g.waist) + cell('腿围', g.thigh) + cell('臀围', g.hip, 'purple') +
+    '<div style="flex-basis:100%;text-align:center;margin-top:6px;">' +
+    '<button class="btn btn-danger btn-sm" onclick="clearGirth()">清除</button></div>';
+}
+
+function renderGirthChart() {
+  const chartEl = document.getElementById('girthChart');
+  const legend = document.getElementById('girthLegend');
+  const dates = lastNDates(7);
+  const db = getDB();
+
+  const series = {
+    waist: dates.map(d => (db[d] && db[d].girth) ? db[d].girth.waist : null),
+    thigh: dates.map(d => (db[d] && db[d].girth) ? db[d].girth.thigh : null),
+    hip:   dates.map(d => (db[d] && db[d].girth) ? db[d].girth.hip   : null)
+  };
+
+  const hasData = ['waist','thigh','hip'].some(k => series[k].some(v => v != null && v > 0));
+  if (!hasData) {
+    chartEl.className = 'weight-empty';
+    chartEl.innerHTML = '暂无数据，记录围度后显示趋势';
+    legend.style.display = 'none';
+    return;
+  }
+
+  legend.style.display = 'flex';
+  chartEl.className = 'chart-wrap';
+  chartEl.innerHTML = '<div class="chart-title">围度趋势 (近7天·cm)</div>' +
+    '<svg viewBox="0 0 320 170" style="width:100%; height:auto; max-width:400px; display:block; margin:0 auto;">' +
+    buildMultiLineSvg({
+      labels: dates.map(d => d.slice(5)),
+      series: [
+        { name: '腰围', values: series.waist, color: '#FF4D6D' },
+        { name: '腿围', values: series.thigh, color: '#FF8FA3' },
+        { name: '臀围', values: series.hip,   color: '#C77DFF' }
+      ]
+    }) +
+    '</svg>';
+}
+
+/* Multi-series line chart (3 lines, shared scale, skips gaps) */
+function buildMultiLineSvg(p) {
+  const labels = p.labels, series = p.series, n = labels.length;
+  const W = 320, H = 170;
+  const padL = 30, padR = 14, padT = 18, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  let maxRaw = 0, minRaw = Infinity;
+  series.forEach(s => s.values.forEach(v => {
+    if (v != null && v > 0) { if (v > maxRaw) maxRaw = v; if (v < minRaw) minRaw = v; }
+  }));
+  if (!isFinite(minRaw)) { minRaw = 0; maxRaw = 1; }
+  const minV = Math.max(0, Math.floor((minRaw - 5) / 5) * 5);
+  const maxV = Math.ceil((maxRaw + 5) / 5) * 5;
+  const range = (maxV - minV) || 1;
+
+  let svg = '';
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const ratio = t / ticks;
+    const y = padT + (1 - ratio) * plotH;
+    const v = Math.round(minV + range * ratio);
+    svg += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) + '" stroke="#FFD6E0" stroke-width="0.5"/>';
+    svg += '<text x="' + (padL - 4) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end" font-size="10" fill="#9E7A82">' + v + '</text>';
+  }
+
+  const xAt = i => padL + (i / Math.max(n - 1, 1)) * plotW;
+  const yAt = v => padT + (1 - (v - minV) / range) * plotH;
+
+  series.forEach(s => {
+    const pts = [];
+    for (let i = 0; i < n; i++) if (s.values[i] != null && s.values[i] > 0) pts.push(i);
+    if (pts.length === 0) return;
+    if (pts.length === 1) {
+      const i = pts[0];
+      svg += '<circle cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(s.values[i]).toFixed(1) + '" r="4" fill="#fff" stroke="' + s.color + '" stroke-width="2"/>';
+      return;
+    }
+    let d = '';
+    pts.forEach((i, k) => {
+      const x = xAt(i), y = yAt(s.values[i]);
+      if (k === 0) { d += 'M' + x.toFixed(1) + ',' + y.toFixed(1) + ' '; return; }
+      const pi = pts[k - 1];
+      const cx1 = (xAt(pi) + x) / 2, cy1 = yAt(s.values[pi]);
+      const cx2 = (xAt(pi) + x) / 2, cy2 = y;
+      d += 'C' + cx1.toFixed(1) + ',' + cy1.toFixed(1) + ' ' + cx2.toFixed(1) + ',' + cy2.toFixed(1) + ' ' + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+    });
+    svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+    pts.forEach(i => {
+      const isLast = i === pts[pts.length - 1];
+      svg += '<circle cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(s.values[i]).toFixed(1) + '" r="' + (isLast ? 4.5 : 3) + '" fill="#fff" stroke="' + s.color + '" stroke-width="2"/>';
+      if (isLast) {
+        svg += '<text x="' + xAt(i).toFixed(1) + '" y="' + (yAt(s.values[i]) - 9).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="' + s.color + '">' + s.values[i] + '</text>';
+      }
+    });
+  });
+
+  for (let i = 0; i < n; i++) {
+    if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
+      svg += '<text x="' + xAt(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="#9E7A82">' + labels[i] + '</text>';
+    }
+  }
+  return svg;
 }
 
 /* ==================== WEIGHT ==================== */
@@ -831,9 +1032,10 @@ function buildLineSvg(p) {
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  // Compute max (ignore null/undefined)
+  // Compute max (ignore null/undefined). If a goal line is given, make sure it fits on the chart.
   let maxRaw = 0;
   values.forEach(v => { if (v != null && Number(v) > maxRaw) maxRaw = Number(v); });
+  if (p.goal && p.goal > maxRaw) maxRaw = p.goal;
   if (maxRaw <= 0) maxRaw = 1;
   const niceMax = Math.ceil(maxRaw * 1.2);
 
@@ -891,6 +1093,13 @@ function buildLineSvg(p) {
   // Line
   if (path) svg += '<path d="' + path + '" fill="none" stroke="' + p.color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
 
+  // Goal / standard dashed reference line (e.g. protein 90g)
+  if (p.goal && p.goal > 0 && p.goal <= niceMax) {
+    const gy = padT + (1 - (p.goal / niceMax)) * plotH;
+    svg += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + gy.toFixed(1) + '" stroke="#2ECC71" stroke-width="1.5" stroke-dasharray="5,4"/>';
+    svg += '<text x="' + (W - padR - 2) + '" y="' + (gy - 5).toFixed(1) + '" text-anchor="end" font-size="10" font-weight="700" fill="#2ECC71">标准 ' + p.goal + '克</text>';
+  }
+
   // Date labels (X axis)
   for (let i = 0; i < n; i++) {
     if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
@@ -912,274 +1121,6 @@ function buildLineSvg(p) {
   return svg;
 }
 
-/* ==================== EXPENSE CHART (7-day total amount) ==================== */
-function renderExpenseChart() {
-  const chartEl = document.getElementById('expChart');
-  const dates = lastNDates(7);
-  const db = getDB();
-  const values = dates.map(d => {
-    const day = db[d];
-    if (!day || !day.expenses) return null;
-    return day.expenses.reduce((s, e) => s + e.amount, 0);
-  });
-
-  if (values.every(v => v == null || v === 0)) {
-    chartEl.className = 'weight-empty';
-    chartEl.innerHTML = '暂无数据，记录支出后显示趋势';
-    return;
-  }
-
-  chartEl.className = 'bar-chart';
-  chartEl.innerHTML = buildBarChart({
-    labels: dates.map(d => d.slice(5)),
-    values: values,
-    format: v => v >= 1000 ? (v/1000).toFixed(1) + 'k' : v.toFixed(0),
-    decimal: 0,
-    color: () => '#FF4D6D',
-    maxScale: 50
-  });
-}
-
-/* ==================== SLEEP CHART (7-day duration) ==================== */
-function renderSleepChart() {
-  const chartEl = document.getElementById('sleepChart');
-  const legendEl = document.getElementById('sleepLegend');
-  const dates = lastNDates(7);
-  const db = getDB();
-  const values = dates.map(d => {
-    const day = db[d];
-    return (day && day.sleep) ? day.sleep.duration : null;
-  });
-  const quals = dates.map(d => {
-    const day = db[d];
-    return (day && day.sleep) ? day.sleep.qualified : false;
-  });
-
-  if (values.every(v => v == null)) {
-    chartEl.className = 'weight-empty';
-    chartEl.innerHTML = '暂无数据，记录睡眠后显示趋势';
-    legendEl.style.display = 'none';
-    return;
-  }
-
-  chartEl.className = 'bar-chart';
-  legendEl.style.display = 'flex';
-  chartEl.innerHTML = buildBarChart({
-    labels: dates.map(d => d.slice(5)),
-    values: values,
-    format: v => v.toFixed(1) + 'h',
-    decimal: 1,
-    color: (v, i) => quals[i] ? '#2ECC71' : '#FF4D6D',
-    maxScale: 8
-  });
-}
-
-/* ==================== SLEEP ==================== */
-let sleepBedTimestamp = null;
-let sleepState = 'idle';
-
-function goToBed() {
-  sleepBedTimestamp = Date.now();
-  sleepState = 'sleeping';
-  const bedTime = new Date(sleepBedTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-  localStorage.setItem('wb_pink_sleep_pending', JSON.stringify({ bedTimestamp: sleepBedTimestamp, bedTime }));
-
-  document.getElementById('sleepStatus').textContent = '已记录';
-  document.getElementById('sleepStatus').className = 'sleep-status recording';
-  document.getElementById('sleepInfo').style.display = 'block';
-  document.getElementById('sleepInfo').textContent = '入睡时间 ' + bedTime;
-  document.getElementById('btnBed').disabled = true;
-  document.getElementById('btnWake').disabled = false;
-  document.getElementById('btnResetSleep').style.display = 'block';
-  document.getElementById('sleepResult').style.display = 'none';
-  showToast('已记录入睡 ' + bedTime);
-}
-
-function wakeUp() {
-  if (!sleepBedTimestamp) return;
-  const wakeTimestamp = Date.now();
-  const bedTime = new Date(sleepBedTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-  const wakeTime = new Date(wakeTimestamp).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-
-  const diffMs = wakeTimestamp - sleepBedTimestamp;
-  const hours = (diffMs / 3600000).toFixed(1);
-  const bedHour = new Date(sleepBedTimestamp).getHours();
-  const qualified = bedHour < 23 && parseFloat(hours) >= 7;
-
-  const td = getTodayData();
-  td.sleep = { bedTimestamp: sleepBedTimestamp, wakeTimestamp, bedTime, wakeTime, duration: parseFloat(hours), qualified };
-  saveTodayData(td);
-  localStorage.removeItem('wb_pink_sleep_pending');
-
-  sleepState = 'done';
-  document.getElementById('sleepStatus').textContent = '记录完成';
-  document.getElementById('sleepStatus').className = 'sleep-status';
-  document.getElementById('sleepInfo').textContent = '入睡 ' + bedTime + ' → 睡醒 ' + wakeTime;
-  document.getElementById('btnBed').disabled = true;
-  document.getElementById('btnWake').disabled = true;
-
-  const resultEl = document.getElementById('sleepResult');
-  resultEl.style.display = 'block';
-  if (qualified) {
-    resultEl.className = 'sleep-result pass';
-    resultEl.textContent = '睡眠达标 — ' + hours + ' 小时';
-  } else {
-    resultEl.className = 'sleep-result fail';
-    resultEl.textContent = '睡眠未达标 — ' + hours + ' 小时 (标准: 23:00前, 7小时)';
-  }
-  renderSleepChart();
-  refreshHome();
-  showToast('睡眠: ' + hours + ' 小时');
-}
-
-function resetSleep() {
-  sleepBedTimestamp = null;
-  sleepState = 'idle';
-  localStorage.removeItem('wb_pink_sleep_pending');
-  document.getElementById('sleepStatus').textContent = '尚未记录';
-  document.getElementById('sleepStatus').className = 'sleep-status';
-  document.getElementById('sleepInfo').style.display = 'none';
-  document.getElementById('btnBed').disabled = false;
-  document.getElementById('btnWake').disabled = true;
-  document.getElementById('btnResetSleep').style.display = 'none';
-  document.getElementById('sleepResult').style.display = 'none';
-  renderSleepChart();
-  showToast('已重置');
-}
-
-function renderSleep() {
-  const td = getTodayData();
-  const resultEl = document.getElementById('sleepResult');
-  const isPast = editingDate !== today();
-
-  // Toggle UI: click UI for today, manual form for past dates
-  document.getElementById('sleepClickUI').style.display = isPast ? 'none' : 'block';
-  document.getElementById('sleepManualUI').style.display = isPast ? 'block' : 'none';
-
-  if (!td.sleep) {
-    resultEl.style.display = 'none';
-    if (isPast) {
-      // Past date with no data — clear manual form
-      document.getElementById('manualSleepBed').value = '';
-      document.getElementById('manualSleepWake').value = '';
-    } else {
-      // Check pending
-      const pending = localStorage.getItem('wb_pink_sleep_pending');
-      if (pending) {
-        try {
-          const p = JSON.parse(pending);
-          sleepBedTimestamp = p.bedTimestamp;
-          sleepState = 'sleeping';
-          document.getElementById('sleepStatus').textContent = '已记录';
-          document.getElementById('sleepStatus').className = 'sleep-status recording';
-          document.getElementById('sleepInfo').style.display = 'block';
-          document.getElementById('sleepInfo').textContent = '入睡时间 ' + p.bedTime;
-          document.getElementById('btnBed').disabled = true;
-          document.getElementById('btnWake').disabled = false;
-          document.getElementById('btnResetSleep').style.display = 'block';
-          return;
-        } catch(e) { localStorage.removeItem('wb_pink_sleep_pending'); }
-      }
-      sleepBedTimestamp = null;
-      sleepState = 'idle';
-      document.getElementById('sleepStatus').textContent = '尚未记录';
-      document.getElementById('sleepStatus').className = 'sleep-status';
-      document.getElementById('sleepInfo').style.display = 'none';
-      document.getElementById('btnBed').disabled = false;
-      document.getElementById('btnWake').disabled = true;
-      document.getElementById('btnResetSleep').style.display = 'none';
-    }
-    return;
-  }
-
-  // Data exists — display it (works for both today and past)
-  sleepBedTimestamp = td.sleep.bedTimestamp;
-  sleepState = 'done';
-  if (isPast) {
-    // Pre-fill manual form with existing values
-    document.getElementById('manualSleepBed').value = td.sleep.bedTime;
-    document.getElementById('manualSleepWake').value = td.sleep.wakeTime;
-    document.getElementById('btnClearManualSleep').style.display = 'block';
-  } else {
-    document.getElementById('sleepStatus').textContent = '记录完成';
-    document.getElementById('sleepStatus').className = 'sleep-status';
-    document.getElementById('sleepInfo').style.display = 'block';
-    document.getElementById('sleepInfo').textContent = '入睡 ' + td.sleep.bedTime + ' → 睡醒 ' + td.sleep.wakeTime;
-    document.getElementById('btnBed').disabled = true;
-    document.getElementById('btnWake').disabled = true;
-    document.getElementById('btnResetSleep').style.display = 'block';
-    document.getElementById('btnClearManualSleep').style.display = 'none';
-  }
-
-  resultEl.style.display = 'block';
-  if (td.sleep.qualified) {
-    resultEl.className = 'sleep-result pass';
-    resultEl.textContent = '睡眠达标 — ' + td.sleep.duration + ' 小时';
-  } else {
-    resultEl.className = 'sleep-result fail';
-    resultEl.textContent = '睡眠未达标 — ' + td.sleep.duration + ' 小时 (标准: 23:00前, 7小时)';
-  }
-}
-
-// Manual sleep entry for past dates — uses two time pickers
-function submitManualSleep() {
-  const bedV = document.getElementById('manualSleepBed').value;
-  const wakeV = document.getElementById('manualSleepWake').value;
-  if (!bedV || !wakeV) { showToast('请填写入睡和睡醒时间'); return; }
-
-  // Build absolute timestamps anchored to editingDate
-  const [bh, bm] = bedV.split(':').map(Number);
-  const [wh, wm] = wakeV.split(':').map(Number);
-  const dateParts = editingDate.split('-').map(Number);
-  // Bed: if hour < 12 assume next day relative to viewing date (typical late-night bed)
-  // Actually simpler: bed on the day before editingDate if hour < 12, else bed on editingDate
-  let bedDayOffset = bh < 12 ? -1 : 0;
-  const bedBase = new Date(dateParts[0], dateParts[1]-1, dateParts[2] + bedDayOffset);
-  bedBase.setHours(bh, bm, 0, 0);
-  // Wake: assume same calendar day as editingDate (most common: wake in morning)
-  const wakeBase = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-  wakeBase.setHours(wh, wm, 0, 0);
-  // If wake time is before bed time, push wake to next day
-  if (wakeBase.getTime() <= bedBase.getTime()) {
-    wakeBase.setDate(wakeBase.getDate() + 1);
-  }
-  const bedTimestamp = bedBase.getTime();
-  const wakeTimestamp = wakeBase.getTime();
-
-  const diffMs = wakeTimestamp - bedTimestamp;
-  const hours = (diffMs / 3600000).toFixed(1);
-  const qualified = bh < 23 && parseFloat(hours) >= 7;
-
-  const td = getTodayData();
-  td.sleep = {
-    bedTimestamp,
-    wakeTimestamp,
-    bedTime: bedV,
-    wakeTime: wakeV,
-    duration: parseFloat(hours),
-    qualified
-  };
-  saveTodayData(td);
-  renderSleep();
-  renderSleepChart();
-  refreshHome();
-  showToast('已保存: ' + hours + ' 小时 ' + (qualified ? '(达标)' : '(未达标)'));
-}
-
-// Clear past-date sleep record
-function clearManualSleep() {
-  const td = getTodayData();
-  if (!td.sleep) { showToast('当前日期无记录'); return; }
-  showConfirm('确认删除该日的睡眠记录？', () => {
-    delete td.sleep;
-    saveTodayData(td);
-    renderSleep();
-    renderSleepChart();
-    refreshHome();
-    showToast('已删除');
-  });
-}
-
 /* ==================== REFRESH HOME ==================== */
 function refreshHome() {
   const td = getTodayData();
@@ -1190,9 +1131,9 @@ function refreshHome() {
   const prefix = isToday ? '今日' : '当天';
 
   document.getElementById('labelDiet').textContent = prefix;
-  document.getElementById('labelExpense').textContent = prefix;
+  document.getElementById('labelProtein').textContent = prefix;
   document.getElementById('labelWeight').textContent = isToday ? '最新' : '当天';
-  document.getElementById('labelSleep').textContent = isToday ? '昨夜' : '当天';
+  document.getElementById('labelGirth').textContent = isToday ? '最新' : '当天';
 
   // Diet stat — sum of kcal
   const dietTotalKcal = (td.diet || []).reduce((s, it) => s + (typeof it === 'object' ? it.kcal : 0), 0);
@@ -1200,10 +1141,11 @@ function refreshHome() {
   document.getElementById('statDiet').textContent = dietTotalKcal;
   document.getElementById('statDietName').textContent = dietCount + ' 餐' + (dietCount > 0 ? ' · ' + (td.diet[td.diet.length - 1].name || '') : '');
 
-  // Expense stat
-  const totalExp = td.expenses.reduce((s,e) => s + e.amount, 0);
-  document.getElementById('statExpense').textContent = totalExp.toFixed(2);
-  document.getElementById('expTotal').textContent = totalExp.toFixed(2);
+  // Protein stat
+  const proTotal = Math.round(proteinTotalOf(td) * 10) / 10;
+  document.getElementById('statProtein').textContent = proTotal;
+  document.getElementById('statProteinState').textContent =
+    proTotal >= PROTEIN_GOAL ? '达标' : (proTotal > 0 ? '还差 ' + Math.round((PROTEIN_GOAL - proTotal) * 10) / 10 + 'g' : '—');
 
   // Weight stat
   if (td.weight) {
@@ -1214,13 +1156,13 @@ function refreshHome() {
     document.getElementById('statWeightChange').textContent = '斤';
   }
 
-  // Sleep stat
-  if (td.sleep) {
-    document.getElementById('statSleep').textContent = td.sleep.duration + 'h';
-    document.getElementById('statSleepQual').textContent = td.sleep.qualified ? '达标' : '未达标';
+  // Girth stat (waist headline)
+  if (td.girth && td.girth.waist) {
+    document.getElementById('statWaist').textContent = td.girth.waist;
+    document.getElementById('statGirthSub').textContent = 'cm';
   } else {
-    document.getElementById('statSleep').textContent = '—';
-    document.getElementById('statSleepQual').textContent = '—';
+    document.getElementById('statWaist').textContent = '—';
+    document.getElementById('statGirthSub').textContent = 'cm';
   }
 
   // Date nav UI
@@ -1242,12 +1184,11 @@ function updateSummary() {
     td.diet.forEach((it, i) => { lines.push('  ' + (i+1) + '. ' + (it.name || '餐') + ' · ' + it.kcal + ' 大卡'); });
   }
 
-  // Expense
-  if (td.expenses.length > 0) {
-    lines.push('日常支出:');
-    td.expenses.forEach((e, i) => { lines.push('  ' + (i+1) + '. ' + e.type + ' ¥' + e.amount.toFixed(2)); });
-    const total = td.expenses.reduce((s,e) => s + e.amount, 0);
-    lines.push('总消费: ' + total.toFixed(2) + ' 元');
+  // Protein
+  const proTotal = Math.round(proteinTotalOf(td) * 10) / 10;
+  if ((td.protein || []).length > 0) {
+    lines.push('蛋白质: ' + proTotal + ' 克 / 90克 ' + (proTotal >= PROTEIN_GOAL ? '[达标]' : '[未达标]'));
+    td.protein.forEach((it, i) => { lines.push('  ' + (i+1) + '. ' + (it.name || '蛋白') + ' · ' + it.g + ' 克'); });
   }
 
   // Weight
@@ -1255,9 +1196,10 @@ function updateSummary() {
     lines.push('体重: ' + td.weight + ' 斤');
   }
 
-  // Sleep
-  if (td.sleep) {
-    lines.push('睡眠: ' + td.sleep.duration + ' 小时 (' + td.sleep.bedTime + '-' + td.sleep.wakeTime + ') ' + (td.sleep.qualified ? '[达标]' : '[未达标]'));
+  // Girth
+  if (td.girth && (td.girth.waist || td.girth.thigh || td.girth.hip)) {
+    const g = td.girth;
+    lines.push('围度: 腰围 ' + (g.waist || '—') + 'cm / 腿围 ' + (g.thigh || '—') + 'cm / 臀围 ' + (g.hip || '—') + 'cm');
   }
 
   if (lines.length <= 1) {
@@ -1325,12 +1267,15 @@ function renderHistory() {
   } else { html += '<div style="color:var(--text3);font-size:13px;">无记录</div>'; }
   html += '</div>';
 
-  // Expense
-  html += '<div class="history-section"><div class="history-section-title">支出</div>';
-  if (data.expenses && data.expenses.length > 0) {
-    data.expenses.forEach((e, i) => { html += '<div class="history-item">' + (i+1) + '. ' + htmlEscape(e.type) + ' — ¥' + e.amount.toFixed(2) + '</div>'; });
-    const total = data.expenses.reduce((s,e) => s + e.amount, 0);
-    html += '<div class="history-item" style="font-weight:700;color:var(--rose);">总消费: ¥' + total.toFixed(2) + '</div>';
+  // Protein
+  html += '<div class="history-section"><div class="history-section-title">蛋白质</div>';
+  if (data.protein && data.protein.length > 0) {
+    data.protein.forEach((it, i) => {
+      html += '<div class="history-item">' + (i+1) + '. ' + htmlEscape(it.name || '蛋白') + ' — ' + it.g + ' 克</div>';
+    });
+    const total = Math.round(proteinTotalOf(data) * 10) / 10;
+    const ok = total >= PROTEIN_GOAL;
+    html += '<div class="history-item" style="font-weight:700;color:' + (ok ? 'var(--green)' : 'var(--rose)') + ';">合计: ' + total + ' 克 / 90克 ' + (ok ? '达标' : '未达标') + '</div>';
   } else { html += '<div style="color:var(--text3);font-size:13px;">无记录</div>'; }
   html += '</div>';
 
@@ -1339,11 +1284,13 @@ function renderHistory() {
   html += data.weight ? '<div class="history-item">' + data.weight + ' 斤</div>' : '<div style="color:var(--text3);font-size:13px;">无记录</div>';
   html += '</div>';
 
-  // Sleep
-  html += '<div class="history-section"><div class="history-section-title">睡眠</div>';
-  if (data.sleep) {
-    const qual = data.sleep.qualified ? '<span style="color:var(--green);">达标</span>' : '<span style="color:var(--rose);">未达标</span>';
-    html += '<div class="history-item">' + data.sleep.duration + ' 小时 (' + data.sleep.bedTime + ' ~ ' + data.sleep.wakeTime + ') ' + qual + '</div>';
+  // Girth
+  html += '<div class="history-section"><div class="history-section-title">身体围度</div>';
+  if (data.girth && (data.girth.waist || data.girth.thigh || data.girth.hip)) {
+    const g = data.girth;
+    html += '<div class="history-item">腰围 ' + (g.waist || '—') + ' cm</div>';
+    html += '<div class="history-item">腿围 ' + (g.thigh || '—') + ' cm</div>';
+    html += '<div class="history-item">臀围 ' + (g.hip || '—') + ' cm</div>';
   } else { html += '<div style="color:var(--text3);font-size:13px;">无记录</div>'; }
   html += '</div>';
 
@@ -1390,7 +1337,6 @@ function importData(fileInput) {
 function clearAll() {
   showConfirm('确认清除所有数据？建议先导出备份！', () => {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem('wb_pink_sleep_pending');
     localStorage.removeItem('wb_pink_collapsed');
     showToast('数据已清除');
     location.reload();
@@ -1401,12 +1347,12 @@ function clearAll() {
 initCards();
 refreshHome();
 renderDiet();
-renderExpenses();
-renderWeightChart();
 renderDietChart();
-renderExpenseChart();
-renderSleepChart();
-renderSleep();
+renderProtein();
+renderProteinChart();
+renderWeightChart();
+renderGirth();
+renderGirthChart();
 </script>
 </body>
 </html>
